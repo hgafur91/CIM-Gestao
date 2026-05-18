@@ -70,8 +70,6 @@ const Icon = ({ name, size = 20, color = "currentColor", strokeWidth = 1.6 }) =>
     mosque: <><path d="M12 2C8 2 6 5 6 8c0 2 1 3 2 4H4v10h16V12h-4c1-1 2-2 2-4 0-3-2-6-6-6z"/><path d="M9 22v-4a3 3 0 0 1 6 0v4"/><path d="M2 12h2M20 12h2"/></>,
     search: <><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>,
     key: <><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></>,
-    edit: <><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>,
-    transfer: <><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></>,
   };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -388,13 +386,12 @@ function CoordOverview({ teachers, students, reports, onSelectReport }) {
   );
 }
 
-// ── Teacher Manager (Coordinator) ─────────────────────────────────────────────
+// ── Teacher Manager ───────────────────────────────────────────────────────────
 function TeacherManager({ teachers, students, onSave }) {
-  const [name, setName]     = useState("");
-  const [pass, setPass]     = useState("");
-  const [turma, setTurma]   = useState("");
-  const [msg, setMsg]       = useState({ text: "", type: "" });
-  const [editing, setEditing] = useState(null); // teacher being edited
+  const [name, setName]   = useState("");
+  const [pass, setPass]   = useState("");
+  const [turma, setTurma] = useState("");
+  const [msg, setMsg]     = useState({ text: "", type: "" });
 
   function add() {
     if (!name.trim() || !pass.trim() || !turma.trim()) { setMsg({ text: "Preenche todos os campos.", type: "error" }); return; }
@@ -404,20 +401,12 @@ function TeacherManager({ teachers, students, onSave }) {
     setMsg({ text: `Professor criado! Acesso: ${id} / ${pass}`, type: "success" });
   }
 
-  function saveEdit(t) {
-    onSave(teachers.map(x => x.id === t.id ? { ...x, name: t.name, password: t.password, turma: t.turma } : x));
-    setEditing(null);
-    setMsg({ text: "Professor atualizado.", type: "success" });
-  }
-
   return (
     <div>
       <div style={{ marginBottom: "2rem" }}>
         <h1 style={T.h1}>Professores</h1>
         <p style={{ ...T.body, marginTop: 4 }}>{teachers.length} professor{teachers.length !== 1 ? "es" : ""} registado{teachers.length !== 1 ? "s" : ""}</p>
       </div>
-
-      {/* Add new */}
       <Card style={{ marginBottom: "1.5rem" }}>
         <h2 style={{ ...T.h2, fontSize: "1rem", marginBottom: "1.2rem" }}>Novo Professor</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "1rem", marginBottom: "1rem" }}>
@@ -433,51 +422,25 @@ function TeacherManager({ teachers, students, onSave }) {
           {msg.text && <span style={{ fontSize: "0.83rem", color: msg.type === "error" ? C.red : C.green }}>{msg.text}</span>}
         </div>
       </Card>
-
-      {/* List */}
       <div style={{ display: "grid", gap: "0.75rem" }}>
         {teachers.map(t => {
           const n = students.filter(s => s.teacherId === t.id).length;
-          const isEditing = editing?.id === t.id;
           return (
-            <Card key={t.id} style={{ padding: "1rem 1.2rem" }}>
-              {isEditing ? (
+            <Card key={t.id} style={{ padding: "1rem 1.2rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <div style={{ width: 44, height: 44, background: C.bluePale, borderRadius: 12,
+                  display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Icon name="users" size={20} color={C.blue} />
+                </div>
                 <div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: "0.75rem", marginBottom: "0.75rem" }}>
-                    {[["Nome", "name", "Nome completo"], ["Turma", "turma", "Ex: Turma A"], ["Senha", "password", "Palavra-passe"]].map(([label, field, ph]) => (
-                      <div key={field}>
-                        <div style={{ ...T.label, marginBottom: 4 }}>{label}</div>
-                        <input style={inp} value={editing[field]} placeholder={ph}
-                          onChange={e => setEditing({ ...editing, [field]: e.target.value })} />
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <Btn icon="check" variant="success" size="sm" onClick={() => saveEdit(editing)}>Guardar</Btn>
-                    <Btn variant="ghost" size="sm" onClick={() => setEditing(null)}>Cancelar</Btn>
+                  <div style={T.h3}>{t.name}</div>
+                  <div style={{ display: "flex", gap: 8, marginTop: 4, alignItems: "center" }}>
+                    <span style={T.mono}>{t.id}</span>
+                    <span style={T.small}>· {t.turma} · {n} aluno{n !== 1 ? "s" : ""}</span>
                   </div>
                 </div>
-              ) : (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                    <div style={{ width: 44, height: 44, background: C.bluePale, borderRadius: 12,
-                      display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Icon name="users" size={20} color={C.blue} />
-                    </div>
-                    <div>
-                      <div style={T.h3}>{t.name}</div>
-                      <div style={{ display: "flex", gap: 8, marginTop: 4, alignItems: "center" }}>
-                        <span style={T.mono}>{t.id}</span>
-                        <span style={T.small}>· {t.turma} · {n} aluno{n !== 1 ? "s" : ""} · senha: {t.password}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <Btn variant="secondary" size="sm" icon="edit" onClick={() => setEditing({ ...t })}>Editar</Btn>
-                    <Btn variant="danger" size="sm" icon="trash" onClick={() => { if (window.confirm("Remover professor?")) onSave(teachers.filter(x => x.id !== t.id)); }}>Remover</Btn>
-                  </div>
-                </div>
-              )}
+              </div>
+              <Btn variant="danger" size="sm" icon="trash" onClick={() => { if (window.confirm("Remover?")) onSave(teachers.filter(x => x.id !== t.id)); }}>Remover</Btn>
             </Card>
           );
         })}
@@ -490,27 +453,26 @@ function TeacherManager({ teachers, students, onSave }) {
   );
 }
 
-// ── Student Manager (Coordinator — transfer only) ──────────────────────────────
+// ── Student Manager ───────────────────────────────────────────────────────────
 function StudentManager({ students, teachers, onSave, onSelect }) {
-  const [search, setSearch]       = useState("");
-  const [transferId, setTransferId] = useState(null);
-  const [newTeacherId, setNewTeacherId] = useState("");
-  const [msg, setMsg]             = useState("");
+  const [name, setName]         = useState("");
+  const [code, setCode]         = useState("");
+  const [teacherId, setTeacherId] = useState("");
+  const [search, setSearch]     = useState("");
+  const [msg, setMsg]           = useState("");
 
-  function transfer(studentId) {
-    if (!newTeacherId) return;
-    const teacher = teachers.find(t => t.id === newTeacherId);
-    onSave(students.map(s => s.id === studentId
-      ? { ...s, teacherId: newTeacherId, turma: teacher?.turma || s.turma }
-      : s
-    ));
-    setTransferId(null); setNewTeacherId(""); setMsg("Aluno transferido com sucesso.");
-    setTimeout(() => setMsg(""), 3000);
+  function add() {
+    if (!name.trim() || !code.trim() || !teacherId) { setMsg("Preenche todos os campos."); return; }
+    if (students.find(s => s.code === code.trim())) { setMsg("Código já existe."); return; }
+    const teacher = teachers.find(t => t.id === teacherId);
+    onSave([...students, { id: `s_${Date.now()}`, name: name.trim(), code: code.trim(),
+      teacherId, turma: teacher?.turma || "", createdAt: new Date().toISOString(),
+      stats: { cim_faltas: 0, madrassa_presencas: 0, madrassa_faltas: 0, madrassa_fj: 0 } }]);
+    setName(""); setCode(""); setMsg(`Aluno ${name} adicionado.`);
   }
 
   const filtered = students.filter(s =>
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    s.code.toLowerCase().includes(search.toLowerCase())
+    s.name.toLowerCase().includes(search.toLowerCase()) || s.code.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -518,66 +480,65 @@ function StudentManager({ students, teachers, onSave, onSelect }) {
       <div style={{ marginBottom: "2rem" }}>
         <h1 style={T.h1}>Alunos</h1>
         <p style={{ ...T.body, marginTop: 4 }}>{students.length} aluno{students.length !== 1 ? "s" : ""} registado{students.length !== 1 ? "s" : ""}</p>
-        {msg && <span style={{ fontSize: "0.83rem", color: C.green, marginTop: 4, display: "block" }}>{msg}</span>}
       </div>
-
+      <Card style={{ marginBottom: "1.5rem" }}>
+        <h2 style={{ ...T.h2, fontSize: "1rem", marginBottom: "1.2rem" }}>Novo Aluno</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "1rem", marginBottom: "1rem" }}>
+          <div>
+            <div style={{ ...T.label, marginBottom: 5 }}>Nome Completo</div>
+            <input style={inp} value={name} placeholder="Nome do aluno" onChange={e => setName(e.target.value)} />
+          </div>
+          <div>
+            <div style={{ ...T.label, marginBottom: 5 }}>Código</div>
+            <input style={inp} value={code} placeholder="Ex: ALU001" onChange={e => setCode(e.target.value)} />
+          </div>
+          <div>
+            <div style={{ ...T.label, marginBottom: 5 }}>Professor / Turma</div>
+            <select style={{ ...inp }} value={teacherId} onChange={e => setTeacherId(e.target.value)}>
+              <option value="">Selecionar...</option>
+              {teachers.map(t => <option key={t.id} value={t.id}>{t.name} — {t.turma}</option>)}
+            </select>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <Btn icon="plus" onClick={add}>Adicionar Aluno</Btn>
+          {msg && <span style={{ fontSize: "0.83rem", color: C.green }}>{msg}</span>}
+        </div>
+      </Card>
       <div style={{ position: "relative", marginBottom: "1rem" }}>
         <div style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}>
           <Icon name="search" size={16} color={C.slateLight} />
         </div>
-        <input style={{ ...inp, paddingLeft: "2.4rem" }} placeholder="Pesquisar por nome ou número CIM..."
-          value={search} onChange={e => setSearch(e.target.value)} />
+        <input style={{ ...inp, paddingLeft: "2.4rem" }} placeholder="Pesquisar..." value={search} onChange={e => setSearch(e.target.value)} />
       </div>
-
       <div style={{ display: "grid", gap: "0.6rem" }}>
         {filtered.map(s => {
           const teacher = teachers.find(t => t.id === s.teacherId);
-          const isTransferring = transferId === s.id;
           return (
-            <Card key={s.id} style={{ padding: "0.9rem 1.2rem" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }} onClick={() => onSelect(s)}>
-                  <div style={{ width: 38, height: 38, background: C.bluePale, borderRadius: 10,
-                    display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Icon name="student" size={18} color={C.blue} />
-                  </div>
-                  <div>
-                    <div style={{ ...T.h3, fontSize: "0.9rem" }}>{s.name}</div>
-                    <div style={{ display: "flex", gap: 8, marginTop: 3, alignItems: "center" }}>
-                      <span style={T.mono}>{s.code}</span>
-                      {teacher && <span style={T.small}>· {teacher.name} · {s.turma}</span>}
-                    </div>
-                  </div>
+            <Card key={s.id} style={{ padding: "0.9rem 1.2rem", display: "flex", alignItems: "center", justifyContent: "space-between" }} onClick={() => onSelect(s)}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 38, height: 38, background: C.bluePale, borderRadius: 10,
+                  display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Icon name="student" size={18} color={C.blue} />
                 </div>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: "0.75rem", color: C.red, fontWeight: 600 }}>{s.stats?.cim_faltas || 0} faltas CIM</div>
-                    <div style={{ fontSize: "0.75rem", color: C.green }}>{s.stats?.madrassa_presencas || 0} presenças</div>
+                <div>
+                  <div style={{ ...T.h3, fontSize: "0.9rem" }}>{s.name}</div>
+                  <div style={{ display: "flex", gap: 8, marginTop: 3, alignItems: "center" }}>
+                    <span style={T.mono}>{s.code}</span>
+                    {teacher && <span style={T.small}>· {teacher.name} · {s.turma}</span>}
                   </div>
-                  <Btn variant="secondary" size="sm" icon="transfer" onClick={() => { setTransferId(isTransferring ? null : s.id); setNewTeacherId(""); }}>
-                    Transferir
-                  </Btn>
                 </div>
               </div>
-              {isTransferring && (
-                <div style={{ marginTop: "0.75rem", paddingTop: "0.75rem", borderTop: `1px solid ${C.line}`,
-                  display: "flex", gap: 8, alignItems: "center" }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ ...T.label, marginBottom: 4 }}>Transferir para</div>
-                    <select style={{ ...inp }} value={newTeacherId} onChange={e => setNewTeacherId(e.target.value)}>
-                      <option value="">Selecionar professor...</option>
-                      {teachers.filter(t => t.id !== s.teacherId).map(t =>
-                        <option key={t.id} value={t.id}>{t.name} — {t.turma}</option>
-                      )}
-                    </select>
-                  </div>
-                  <div style={{ marginTop: 18 }}>
-                    <Btn variant="success" size="sm" icon="check" onClick={() => transfer(s.id)} disabled={!newTeacherId}>
-                      Confirmar
-                    </Btn>
-                  </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: "0.78rem", color: C.red, fontWeight: 600 }}>{s.stats?.cim_faltas || 0} faltas CIM</div>
+                  <div style={{ fontSize: "0.78rem", color: C.green }}>{s.stats?.madrassa_presencas || 0} presenças</div>
                 </div>
-              )}
+                <button onClick={e => { e.stopPropagation(); if (window.confirm("Remover?")) onSave(students.filter(x => x.id !== s.id)); }}
+                  style={{ background: "none", border: "none", cursor: "pointer", padding: 6 }}>
+                  <Icon name="trash" size={15} color={C.slateLight} />
+                </button>
+              </div>
             </Card>
           );
         })}
@@ -825,7 +786,7 @@ function TeacherShell({ user, students, reports, save, apiKey, onLogout }) {
         <main style={{ flex: 1, padding: "2rem", overflowY: "auto" }}>
           {tab === "submit"   && <SubmitReport user={user} myStudents={myStudents} reports={reports} onSave={save.reports} onUpdateStudents={save.students} students={students} apiKey={apiKey} />}
           {tab === "history"  && <TeacherHistory myReports={myReports} />}
-          {tab === "students" && <MyStudents myStudents={myStudents} user={user} allStudents={students} onSaveStudents={save.students} />}
+          {tab === "students" && <MyStudents myStudents={myStudents} user={user} />}
         </main>
       </div>
     </div>
@@ -1006,77 +967,16 @@ function TeacherHistory({ myReports }) {
   );
 }
 
-function MyStudents({ myStudents, user, allStudents, onSaveStudents }) {
-  const [name, setName] = useState("");
-  const [msg, setMsg]   = useState({ text: "", type: "" });
-
-  function nextCimNumber() {
-    // Global sequential number across all students
-    const nums = allStudents
-      .map(s => parseInt(s.code?.replace("CIM-", "") || "0"))
-      .filter(n => !isNaN(n));
-    const max = nums.length > 0 ? Math.max(...nums) : 0;
-    return `CIM-${String(max + 1).padStart(3, "0")}`;
-  }
-
-  function addStudent() {
-    if (!name.trim()) { setMsg({ text: "Escreve o nome do aluno.", type: "error" }); return; }
-    const code = nextCimNumber();
-    const newStudent = {
-      id: `s_${Date.now()}`,
-      name: name.trim(),
-      code,
-      teacherId: user.id,
-      turma: user.turma,
-      createdAt: new Date().toISOString(),
-      stats: { cim_faltas: 0, madrassa_presencas: 0, madrassa_faltas: 0, madrassa_fj: 0 }
-    };
-    onSaveStudents([...allStudents, newStudent]);
-    setName("");
-    setMsg({ text: `Aluno adicionado com número ${code}`, type: "success" });
-    setTimeout(() => setMsg({ text: "", type: "" }), 3000);
-  }
-
-  function removeStudent(id) {
-    if (window.confirm("Remover este aluno da turma?"))
-      onSaveStudents(allStudents.filter(s => s.id !== id));
-  }
-
+function MyStudents({ myStudents, user }) {
   return (
     <div>
       <div style={{ marginBottom: "2rem" }}>
         <h1 style={T.h1}>A Minha Turma</h1>
         <p style={{ ...T.body, marginTop: 4 }}>{user.turma} · {myStudents.length} aluno{myStudents.length !== 1 ? "s" : ""}</p>
       </div>
-
-      {/* Add student */}
-      <Card style={{ marginBottom: "1.5rem" }}>
-        <h2 style={{ ...T.h2, fontSize: "1rem", marginBottom: "1rem" }}>Adicionar Aluno</h2>
-        <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end" }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ ...T.label, marginBottom: 5 }}>Nome Completo</div>
-            <input style={inp} value={name} placeholder="Nome do aluno"
-              onChange={e => setName(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && addStudent()} />
-          </div>
-          <Btn icon="plus" onClick={addStudent}>Adicionar</Btn>
-        </div>
-        {msg.text && (
-          <div style={{ marginTop: "0.75rem", fontSize: "0.83rem",
-            color: msg.type === "error" ? C.red : C.green }}>
-            {msg.text}
-          </div>
-        )}
-        <p style={{ ...T.small, marginTop: "0.6rem" }}>
-          O número CIM é atribuído automaticamente por ordem de entrada.
-        </p>
-      </Card>
-
-      {/* Student list */}
       <div style={{ display: "grid", gap: "0.6rem" }}>
         {myStudents.map((s, i) => (
-          <Card key={s.id} style={{ padding: "0.9rem 1.2rem", display: "flex",
-            alignItems: "center", justifyContent: "space-between" }}>
+          <Card key={s.id} style={{ padding: "0.9rem 1.2rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 34, height: 34, background: C.bluePale, borderRadius: 9,
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -1086,24 +986,16 @@ function MyStudents({ myStudents, user, allStudents, onSaveStudents }) {
                 <span style={T.mono}>{s.code}</span>
               </div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "0.75rem", color: C.red, fontWeight: 600 }}>{s.stats?.cim_faltas || 0} faltas CIM</div>
-                <div style={{ fontSize: "0.75rem", color: C.green }}>{s.stats?.madrassa_presencas || 0} presenças</div>
-              </div>
-              <button onClick={() => removeStudent(s.id)}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 6 }}>
-                <Icon name="trash" size={15} color={C.slateLight} />
-              </button>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: "0.78rem", color: C.red, fontWeight: 600 }}>{s.stats?.cim_faltas || 0} faltas CIM</div>
+              <div style={{ fontSize: "0.78rem", color: C.green }}>{s.stats?.madrassa_presencas || 0} presenças</div>
             </div>
           </Card>
         ))}
-        {myStudents.length === 0 && (
-          <div style={{ textAlign: "center", padding: "3rem", color: C.slateLight }}>
-            <Icon name="student" size={40} color={C.line} />
-            <p style={{ marginTop: "1rem" }}>Nenhum aluno ainda — adiciona o primeiro acima</p>
-          </div>
-        )}
+        {myStudents.length === 0 && <div style={{ textAlign: "center", padding: "3rem", color: C.slateLight }}>
+          <Icon name="student" size={40} color={C.line} />
+          <p style={{ marginTop: "1rem" }}>Nenhum aluno alocado ainda</p>
+        </div>}
       </div>
     </div>
   );
