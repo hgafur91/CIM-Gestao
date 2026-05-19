@@ -552,7 +552,7 @@ function TeacherCard({ teacher, data, onSaveTeachers, onBack }) {
   // Build all slots for this teacher
   const allSlots=myClasses.flatMap(cls=>
     (cls.schedule||[])
-      .filter(s=>!s.slotTeacherId||s.slotTeacherId===teacher.id)
+      .filter(s=>!s.slotTeacherId||s.slotTeacherId===""||s.slotTeacherId===teacher.id)
       .map(s=>({...s,className:cls.name,classType:cls.type||"cim",subjectName:(cls.subjects||[]).find(x=>x.id===s.subjectId)?.name||""}))
   );
 
@@ -1182,7 +1182,7 @@ function TeacherSchedulePage({ user, data }) {
   const myClasses=classes.filter(c=>c.teacherId===user.id);
   const allSlots=myClasses.flatMap(cls=>
     (cls.schedule||[])
-      .filter(s=>!s.slotTeacherId||s.slotTeacherId===user.id)
+      .filter(s=>!s.slotTeacherId||s.slotTeacherId===""||s.slotTeacherId===user.id)
       .map(s=>({...s,className:cls.name,classType:cls.type||"cim",subjectName:(cls.subjects||[]).find(x=>x.id===s.subjectId)?.name||""}))
   );
   return (
