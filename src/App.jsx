@@ -536,7 +536,7 @@ function ClassManager({ data, onSaveClasses }) {
   const [editing, setEditing]     = useState(null);
 
   // schedule entry form
-  const emptySlot = {day:"Segunda", start:"", end:"", label:""};
+  const emptySlot = {day:"Segunda", start:"", end:"", subjectId:"", slotTeacherId:""};
   const [slot, setSlot] = useState(emptySlot);
 
   function addClass() {
@@ -757,20 +757,25 @@ function ClassManager({ data, onSaveClasses }) {
                             <div key={day} style={{display:"flex", gap:8, alignItems:"flex-start", flexWrap:"wrap"}}>
                               <div style={{width:72, paddingTop:6, ...T.label, fontSize:"0.68rem"}}>{day}</div>
                               <div style={{display:"flex", gap:6, flexWrap:"wrap", flex:1}}>
-                                {daySlots.map(s=>(
-                                  <div key={s.id} style={{display:"flex", alignItems:"center", gap:5,
-                                    background:typeColor+"18", borderRadius:8, padding:"4px 10px",
-                                    border:`1px solid ${typeColor}33`}}>
-                                    <span style={{fontSize:"0.8rem", fontWeight:600, color:typeColor}}>
-                                      {s.start}–{s.end}
-                                    </span>
-                                    {s.label && <span style={{fontSize:"0.78rem", color:C.slate}}>· {s.label}</span>}
-                                    <button style={{background:"none",border:"none",cursor:"pointer",padding:0,display:"flex"}}
-                                      onClick={()=>removeSlot(cls.id,s.id)}>
-                                      <Icon name="trash" size={12} color={C.slateLight}/>
-                                    </button>
-                                  </div>
-                                ))}
+                                {daySlots.map(s=>{
+                                    const subj = (cls.subjects||[]).find(x=>x.id===s.subjectId);
+                                    const slotTeacher = teachers.find(t=>t.id===s.slotTeacherId);
+                                    return (
+                                      <div key={s.id} style={{display:"flex", alignItems:"center", gap:5,
+                                        background:typeColor+"18", borderRadius:8, padding:"4px 10px",
+                                        border:`1px solid ${typeColor}33`}}>
+                                        <span style={{fontSize:"0.8rem", fontWeight:700, color:typeColor}}>
+                                          {s.start}–{s.end}
+                                        </span>
+                                        {subj && <span style={{fontSize:"0.78rem", fontWeight:600, color:C.navy}}>· {subj.name}</span>}
+                                        {slotTeacher && <span style={{fontSize:"0.75rem", color:C.slate}}>· {slotTeacher.name}</span>}
+                                        <button style={{background:"none",border:"none",cursor:"pointer",padding:0,display:"flex"}}
+                                          onClick={()=>removeSlot(cls.id,s.id)}>
+                                          <Icon name="trash" size={12} color={C.slateLight}/>
+                                        </button>
+                                      </div>
+                                    );
+                                  })}
                                 {daySlots.length===0 && <span style={{...T.small, paddingTop:6}}>Sem aulas</span>}
                               </div>
                             </div>
@@ -781,7 +786,7 @@ function ClassManager({ data, onSaveClasses }) {
                       {/* Add slot form */}
                       <div style={{background:C.sand, borderRadius:10, padding:"0.75rem", border:`1px solid ${C.line}`}}>
                         <div style={{...T.label, marginBottom:8}}>Adicionar Tempo</div>
-                        <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr 2fr auto", gap:8, alignItems:"flex-end"}}>
+                        <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))", gap:8, alignItems:"flex-end", marginBottom:8}}>
                           <div>
                             <div style={{...T.label, marginBottom:4, fontSize:"0.65rem"}}>Dia</div>
                             <select style={{...inp, padding:"0.45rem 0.6rem"}} value={slot.day}
@@ -800,15 +805,25 @@ function ClassManager({ data, onSaveClasses }) {
                               onChange={e=>setSlot({...slot,end:e.target.value})}/>
                           </div>
                           <div>
-                            <div style={{...T.label, marginBottom:4, fontSize:"0.65rem"}}>Designação (opcional)</div>
-                            <input style={{...inp, padding:"0.45rem 0.6rem"}} value={slot.label}
-                              placeholder="Ex: Árabe, Quran..."
-                              onChange={e=>setSlot({...slot,label:e.target.value})}/>
+                            <div style={{...T.label, marginBottom:4, fontSize:"0.65rem"}}>Disciplina</div>
+                            <select style={{...inp, padding:"0.45rem 0.6rem"}} value={slot.subjectId}
+                              onChange={e=>setSlot({...slot,subjectId:e.target.value})}>
+                              <option value="">Selecionar...</option>
+                              {(cls.subjects||[]).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
+                            </select>
                           </div>
-                          <Btn icon="plus" size="sm" onClick={()=>addSlot(cls.id, cls.type||"cim")}>
-                            Adicionar
-                          </Btn>
+                          <div>
+                            <div style={{...T.label, marginBottom:4, fontSize:"0.65rem"}}>Professor</div>
+                            <select style={{...inp, padding:"0.45rem 0.6rem"}} value={slot.slotTeacherId}
+                              onChange={e=>setSlot({...slot,slotTeacherId:e.target.value})}>
+                              <option value="">Selecionar...</option>
+                              {teachers.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}
+                            </select>
+                          </div>
                         </div>
+                        <Btn icon="plus" size="sm" onClick={()=>addSlot(cls.id, cls.type||"cim")}>
+                          Adicionar Tempo
+                        </Btn>
                       </div>
                     </div>
                   )}
@@ -1350,11 +1365,15 @@ function TeacherSchedule({ user, data }) {
       )}
 
       {DAYS.map(day => {
-        // collect all slots for this day across all my classes
         const daySlots = myClasses.flatMap(cls =>
           (cls.schedule||[])
             .filter(s=>s.day===day)
-            .map(s=>({...s, className:cls.name, classType:cls.type||"cim"}))
+            .map(s=>({
+              ...s,
+              className: cls.name,
+              classType: cls.type||"cim",
+              subjectName: (cls.subjects||[]).find(x=>x.id===s.subjectId)?.name || "",
+            }))
         ).sort((a,b)=>a.start.localeCompare(b.start));
 
         return (
@@ -1366,20 +1385,23 @@ function TeacherSchedule({ user, data }) {
             ) : (
               <div style={{display:"grid", gap:"0.4rem"}}>
                 {daySlots.map(s => {
-                  const isCIM  = s.classType!=="madrassa";
-                  const color  = isCIM ? C.blue : C.green;
+                  const isCIM     = s.classType!=="madrassa";
+                  const color     = isCIM ? C.blue : C.green;
                   const typeLabel = isCIM ? "CIM" : "Madrassa";
+                  // only show slot if teacher matches (or no teacher set on slot)
+                  const isMySlot  = !s.slotTeacherId || s.slotTeacherId===user.id;
+                  if (!isMySlot) return null;
                   return (
                     <div key={s.id} style={{display:"flex", alignItems:"center", gap:12,
                       padding:"0.65rem 1rem", background:color+"10", borderRadius:10,
                       border:`1px solid ${color}30`}}>
-                      <div style={{fontWeight:800, fontSize:"0.95rem", color, minWidth:100,
+                      <div style={{fontWeight:800, fontSize:"0.95rem", color, minWidth:110,
                         fontFamily:"'Courier New',monospace"}}>
                         {s.start} – {s.end}
                       </div>
                       <div style={{flex:1}}>
-                        <span style={{fontWeight:600, color:C.navy}}>{s.className}</span>
-                        {s.label && <span style={{...T.small, marginLeft:8}}>· {s.label}</span>}
+                        <div style={{fontWeight:600, color:C.navy}}>{s.className}</div>
+                        {s.subjectName && <div style={T.small}>{s.subjectName}</div>}
                       </div>
                       <span style={{background:color+"22", color, borderRadius:20,
                         padding:"2px 8px", fontSize:"0.7rem", fontWeight:700}}>{typeLabel}</span>
