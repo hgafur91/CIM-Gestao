@@ -153,9 +153,10 @@ const thS = {
 export default function App() {
   const [user,     setUser]     = useState(null);
   const [teachers, setTeachers] = useState([]);
-  const [classes,  setClasses]  = useState([]);   // {id, name, year, teacherId, subjects:[]}
-  const [students, setStudents] = useState([]);   // {id, code, name, classId, grades:{subjId:{...}}}
+  const [classes,  setClasses]  = useState([]);
+  const [students, setStudents] = useState([]);
   const [reports,  setReports]  = useState([]);
+  const [levels,   setLevels]   = useState([]);
   const [apiKey,   setApiKey]   = useState("");
 
   useEffect(() => {
@@ -163,6 +164,7 @@ export default function App() {
     setClasses( db.get("cim:classes")  || []);
     setStudents(db.get("cim:students") || []);
     setReports( db.get("cim:reports")  || []);
+    setLevels(  db.get("cim:levels")   || []);
     setApiKey(  db.get("cim:apikey")   || "");
   }, []);
 
@@ -171,6 +173,7 @@ export default function App() {
     classes:  v => { setClasses(v);  db.set("cim:classes",  v); },
     students: v => { setStudents(v); db.set("cim:students", v); },
     reports:  v => { setReports(v);  db.set("cim:reports",  v); },
+    levels:   v => { setLevels(v);   db.set("cim:levels",   v); },
     apiKey:   v => { setApiKey(v);   db.set("cim:apikey",   v); },
   };
 
@@ -196,7 +199,7 @@ export default function App() {
 
   function logout() { setUser(null); }
 
-  const data = { teachers, classes, students, reports, apiKey };
+  const data = { teachers, classes, students, reports, levels, apiKey };
 
   if (!user)               return <LoginScreen onLogin={login}/>;
   if (user.role==="coord") return <CoordShell   user={user} data={data} save={save} onLogout={logout}/>;
@@ -334,23 +337,26 @@ function CoordShell({ user, data, save, onLogout }) {
   const nav = [
     { id:"overview",  label:"Visão Geral",   icon:"dashboard" },
     { id:"teachers",  label:"Professores",   icon:"users" },
+    { id:"levels",    label:"Níveis",        icon:"grades" },
     { id:"classes",   label:"Turmas",        icon:"classes" },
     { id:"students",  label:"Alunos",        icon:"student" },
-    { id:"grades",    label:"Notas",         icon:"grades" },
+    { id:"grades",    label:"Notas",         icon:"book" },
     { id:"reports",   label:"Relatórios",    icon:"report", badge:pending },
     { id:"settings",  label:"Definições",    icon:"key" },
   ];
   return (
     <Shell user={user} nav={nav} onLogout={onLogout}>
       {({tab, detail, setDetail}) => <>
-        {detail?.type==="student" && <StudentDetail student={detail.data} data={data} onSave={save.students} onBack={()=>setDetail(null)}/>}
-        {detail?.type==="report"  && <ReportDetail  report={detail.data}  data={data} onSave={save.reports}  onBack={()=>setDetail(null)}/>}
+        {detail?.type==="teacher" && <TeacherCard teacher={detail.data} data={data} onSave={save.teachers} onBack={()=>setDetail(null)}/>}
+        {detail?.type==="student" && <StudentCard student={detail.data} data={data} onSave={save.students} onBack={()=>setDetail(null)}/>}
+        {detail?.type==="report"  && <ReportDetail report={detail.data} data={data} onSave={save.reports}  onBack={()=>setDetail(null)}/>}
         {!detail && tab==="overview" && <CoordOverview data={data} onSelectReport={r=>setDetail({type:"report",data:r})}/>}
-        {!detail && tab==="teachers" && <TeacherManager data={data} onSave={save.teachers}/>}
-        {!detail && tab==="classes"  && <ClassManager   data={data} onSaveClasses={save.classes}/>}
-        {!detail && tab==="students" && <CoordStudents  data={data} onSave={save.students} onSelect={s=>setDetail({type:"student",data:s})}/>}
-        {!detail && tab==="grades"   && <GradeManager   data={data} onSave={save.students}/>}
-        {!detail && tab==="reports"  && <ReportList     data={data} onSave={save.reports}  onSelect={r=>setDetail({type:"report",data:r})}/>}
+        {!detail && tab==="teachers" && <TeacherManager data={data} onSave={save.teachers} onSelect={t=>setDetail({type:"teacher",data:t})}/>}
+        {!detail && tab==="levels"   && <LevelManager data={data} onSave={save.levels}/>}
+        {!detail && tab==="classes"  && <ClassManager  data={data} onSaveClasses={save.classes}/>}
+        {!detail && tab==="students" && <CoordStudents data={data} onSave={save.students} onSelect={s=>setDetail({type:"student",data:s})}/>}
+        {!detail && tab==="grades"   && <GradeManager  data={data} onSave={save.students}/>}
+        {!detail && tab==="reports"  && <ReportList    data={data} onSave={save.reports}  onSelect={r=>setDetail({type:"report",data:r})}/>}
         {!detail && tab==="settings" && <Settings apiKey={data.apiKey} onSave={save.apiKey}/>}
       </>}
     </Shell>
@@ -416,83 +422,181 @@ function CoordOverview({ data, onSelectReport }) {
   );
 }
 
+// ── Level Manager ─────────────────────────────────────────────────────────────
+function LevelManager({ data, onSave }) {
+  const { levels } = data;
+  const [form, setForm] = useState({ name:"", color:"#1251A3", patente:"" });
+  const [msg, setMsg]   = useState({ text:"", type:"" });
+
+  function add() {
+    if (!form.name.trim()||!form.patente.trim()) { setMsg({text:"Preenche nome e patente.", type:"error"}); return; }
+    onSave([...levels, { id:`lvl_${Date.now()}`, ...form }]);
+    setForm({ name:"", color:"#1251A3", patente:"" });
+    setMsg({ text:"Nível criado.", type:"success" });
+  }
+
+  return (
+    <div>
+      <div style={{marginBottom:"2rem"}}><h1 style={T.h1}>Níveis de Professor</h1></div>
+      <Card style={{marginBottom:"1.5rem"}}>
+        <h2 style={{...T.h2, fontSize:"1rem", marginBottom:"1.2rem"}}>Novo Nível</h2>
+        <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 80px", gap:"1rem", marginBottom:"1rem"}}>
+          <div>
+            <div style={{...T.label, marginBottom:5}}>Nome do Nível</div>
+            <input style={inp} value={form.name} placeholder="Ex: Sénior, Mestre..."
+              onChange={e=>setForm({...form,name:e.target.value})}/>
+          </div>
+          <div>
+            <div style={{...T.label, marginBottom:5}}>Patente / Título</div>
+            <input style={inp} value={form.patente} placeholder="Ex: Professor Certificado"
+              onChange={e=>setForm({...form,patente:e.target.value})}/>
+          </div>
+          <div>
+            <div style={{...T.label, marginBottom:5}}>Cor</div>
+            <input type="color" style={{...inp, padding:"0.2rem", height:42, cursor:"pointer"}}
+              value={form.color} onChange={e=>setForm({...form,color:e.target.value})}/>
+          </div>
+        </div>
+        <div style={{display:"flex", alignItems:"center", gap:"1rem"}}>
+          <Btn icon="plus" onClick={add}>Criar Nível</Btn>
+          <Msg {...msg}/>
+        </div>
+      </Card>
+      <div style={{display:"grid", gap:"0.6rem"}}>
+        {levels.map(l => (
+          <Card key={l.id} style={{padding:"0.9rem 1.2rem", display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+            <div style={{display:"flex", alignItems:"center", gap:12}}>
+              <div style={{width:36, height:36, borderRadius:9, background:l.color+"22",
+                border:`2px solid ${l.color}`, display:"flex", alignItems:"center", justifyContent:"center"}}>
+                <div style={{width:14, height:14, borderRadius:"50%", background:l.color}}/>
+              </div>
+              <div>
+                <div style={{fontWeight:700, color:C.navy}}>{l.name}</div>
+                <div style={T.small}>{l.patente}</div>
+              </div>
+            </div>
+            <button onClick={()=>onSave(levels.filter(x=>x.id!==l.id))}
+              style={{background:"none", border:"none", cursor:"pointer", padding:6}}>
+              <Icon name="trash" size={15} color={C.slateLight}/>
+            </button>
+          </Card>
+        ))}
+        {levels.length===0 && <p style={T.body}>Nenhum nível criado ainda.</p>}
+      </div>
+    </div>
+  );
+}
+
 // ── Teacher Manager ───────────────────────────────────────────────────────────
-function TeacherManager({ data, onSave }) {
-  const {teachers, classes, students} = data;
-  const [form, setForm]     = useState({name:"", password:""});
+function TeacherManager({ data, onSave, onSelect }) {
+  const {teachers, classes, students, levels} = data;
+  const [form, setForm]     = useState({name:"", password:"", email:"", telefone:"", morada:"", grauAcademico:"", levelId:"", anoAdesao: new Date().getFullYear()+""});
   const [editing, setEditing] = useState(null);
+  const [showForm, setShowForm] = useState(false);
   const [msg, setMsg]       = useState({text:"", type:""});
 
   function add() {
     if (!form.name||!form.password) { setMsg({text:"Preenche nome e senha.", type:"error"}); return; }
     const id = "prof"+String(teachers.length+1).padStart(2,"0");
-    onSave([...teachers, {id, name:form.name.trim(), password:form.password.trim(), role:"teacher", createdAt:new Date().toISOString()}]);
-    setForm({name:"", password:""});
+    onSave([...teachers, {id, ...form, role:"teacher", createdAt:new Date().toISOString()}]);
+    setForm({name:"", password:"", email:"", telefone:"", morada:"", grauAcademico:"", levelId:"", anoAdesao: new Date().getFullYear()+""});
+    setShowForm(false);
     setMsg({text:`Criado! Acesso: ${id} / ${form.password}`, type:"success"});
   }
 
   function saveEdit() {
-    onSave(teachers.map(t => t.id===editing.id ? {...t, name:editing.name, password:editing.password} : t));
+    onSave(teachers.map(t => t.id===editing.id ? {...t, ...editing} : t));
     setEditing(null); setMsg({text:"Atualizado.", type:"success"});
   }
 
+  const FIELDS = [
+    ["Nome Completo","name","Ahmed Mansur"],
+    ["Palavra-passe","password","Senha de acesso"],
+    ["Email","email","email@exemplo.com"],
+    ["Telefone","telefone","+351 9xx xxx xxx"],
+    ["Morada","morada","Rua, nº, cidade"],
+    ["Grau Académico","grauAcademico","Ex: Licenciatura em Estudos Islâmicos"],
+    ["Ano de Adesão","anoAdesao","Ex: 2022"],
+  ];
+
+  const FormFields = ({ vals, onChange }) => (
+    <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:"1rem", marginBottom:"1rem"}}>
+      {FIELDS.map(([label,field,ph]) => (
+        <div key={field}>
+          <div style={{...T.label, marginBottom:5}}>{label}</div>
+          <input style={inp} value={vals[field]||""} placeholder={ph}
+            onChange={e=>onChange({...vals,[field]:e.target.value})}/>
+        </div>
+      ))}
+      <div>
+        <div style={{...T.label, marginBottom:5}}>Nível</div>
+        <select style={{...inp}} value={vals.levelId||""} onChange={e=>onChange({...vals,levelId:e.target.value})}>
+          <option value="">Sem nível</option>
+          {levels.map(l=><option key={l.id} value={l.id}>{l.name}</option>)}
+        </select>
+      </div>
+    </div>
+  );
+
   return (
     <div>
-      <div style={{marginBottom:"2rem"}}><h1 style={T.h1}>Professores</h1></div>
-      <Card style={{marginBottom:"1.5rem"}}>
-        <h2 style={{...T.h2, fontSize:"1rem", marginBottom:"1.2rem"}}>Novo Professor</h2>
-        <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1rem", marginBottom:"1rem"}}>
-          <div>
-            <div style={{...T.label, marginBottom:5}}>Nome Completo</div>
-            <input style={inp} value={form.name} placeholder="Ex: Ahmed Mansur"
-              onChange={e=>setForm({...form, name:e.target.value})}/>
+      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"2rem"}}>
+        <h1 style={T.h1}>Professores</h1>
+        <Btn icon="plus" onClick={()=>setShowForm(!showForm)}>
+          {showForm?"Cancelar":"Novo Professor"}
+        </Btn>
+      </div>
+
+      {showForm && (
+        <Card style={{marginBottom:"1.5rem"}}>
+          <h2 style={{...T.h2, fontSize:"1rem", marginBottom:"1.2rem"}}>Novo Professor</h2>
+          <FormFields vals={form} onChange={setForm}/>
+          <div style={{display:"flex", alignItems:"center", gap:"1rem"}}>
+            <Btn icon="plus" onClick={add}>Criar Professor</Btn>
+            <Msg {...msg}/>
           </div>
-          <div>
-            <div style={{...T.label, marginBottom:5}}>Palavra-passe</div>
-            <input style={inp} value={form.password} placeholder="Senha de acesso"
-              onChange={e=>setForm({...form, password:e.target.value})}/>
-          </div>
-        </div>
-        <div style={{display:"flex", alignItems:"center", gap:"1rem"}}>
-          <Btn icon="plus" onClick={add}>Criar Professor</Btn>
-          <Msg {...msg}/>
-        </div>
-      </Card>
+        </Card>
+      )}
+      {!showForm && msg.text && <Msg {...msg}/>}
 
       <div style={{display:"grid", gap:"0.75rem"}}>
         {teachers.map(t => {
           const myClasses = classes.filter(c=>c.teacherId===t.id);
           const n = students.filter(s=>myClasses.some(c=>c.id===s.classId)).length;
+          const level = levels.find(l=>l.id===t.levelId);
           const isEd = editing?.id===t.id;
           return (
             <Card key={t.id} style={{padding:"1rem 1.2rem"}}>
               {isEd ? (
                 <div>
-                  <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0.75rem", marginBottom:"0.75rem"}}>
-                    {[["Nome","name"],["Senha","password"]].map(([label,field]) => (
-                      <div key={field}>
-                        <div style={{...T.label, marginBottom:4}}>{label}</div>
-                        <input style={inp} value={editing[field]||""} onChange={e=>setEditing({...editing,[field]:e.target.value})}/>
-                      </div>
-                    ))}
-                  </div>
+                  <FormFields vals={editing} onChange={setEditing}/>
                   <div style={{display:"flex", gap:8}}>
                     <Btn icon="check" variant="success" size="sm" onClick={saveEdit}>Guardar</Btn>
                     <Btn variant="ghost" size="sm" onClick={()=>setEditing(null)}>Cancelar</Btn>
                   </div>
                 </div>
               ) : (
-                <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-                  <div style={{display:"flex", alignItems:"center", gap:14}}>
-                    <div style={{width:44, height:44, background:C.bluePale, borderRadius:12,
+                <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8}}>
+                  <div style={{display:"flex", alignItems:"center", gap:14, cursor:"pointer", flex:1}}
+                    onClick={()=>onSelect(t)}>
+                    <div style={{width:44, height:44, borderRadius:12,
+                      background:level?level.color+"22":C.bluePale,
+                      border:level?`2px solid ${level.color}`:undefined,
                       display:"flex", alignItems:"center", justifyContent:"center"}}>
-                      <Icon name="users" size={20} color={C.blue}/>
+                      <Icon name="users" size={20} color={level?level.color:C.blue}/>
                     </div>
                     <div>
-                      <div style={T.h3}>{t.name}</div>
+                      <div style={{display:"flex", gap:8, alignItems:"center"}}>
+                        <span style={T.h3}>{t.name}</span>
+                        {level && <span style={{background:level.color+"22", color:level.color,
+                          borderRadius:20, padding:"1px 8px", fontSize:"0.7rem", fontWeight:700}}>
+                          {level.name}
+                        </span>}
+                      </div>
                       <div style={{display:"flex", gap:8, marginTop:4, alignItems:"center", flexWrap:"wrap"}}>
                         <span style={T.mono}>{t.id}</span>
-                        <span style={T.small}>· senha: {t.password} · {myClasses.length} turma{myClasses.length!==1?"s":""} · {n} aluno{n!==1?"s":""}</span>
+                        <span style={T.small}>· {myClasses.length} turma{myClasses.length!==1?"s":""} · {n} aluno{n!==1?"s":""}</span>
+                        {t.anoAdesao && <span style={T.small}>· Desde {t.anoAdesao}</span>}
                       </div>
                     </div>
                   </div>
@@ -515,6 +619,381 @@ function TeacherManager({ data, onSave }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ── Teacher Card ──────────────────────────────────────────────────────────────
+function TeacherCard({ teacher, data, onSave, onBack }) {
+  const { classes, students, levels } = data;
+  const level = levels.find(l=>l.id===teacher.levelId);
+  const myClasses = classes.filter(c=>c.teacherId===teacher.id);
+  const scheduleRef = useRef();
+
+  function downloadSchedulePDF() {
+    const el = scheduleRef.current;
+    if (!el) return;
+    const w = el.scrollWidth, h = el.scrollHeight;
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'>
+      <foreignObject width='${w}' height='${h}'>
+        <div xmlns='http://www.w3.org/1999/xhtml'>${el.outerHTML}</div>
+      </foreignObject></svg>`;
+    const blob = new Blob([svg], {type:"image/svg+xml"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `horario_${teacher.name.replace(/\s+/g,"_")}.svg`;
+    a.click(); URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div>
+      <Btn variant="secondary" icon="back" size="sm" onClick={onBack}>Voltar</Btn>
+
+      {/* Profile Card */}
+      <div style={{background:`linear-gradient(135deg,${C.navy} 0%,${level?.color||C.blue} 100%)`,
+        borderRadius:20, padding:"2rem", margin:"1.5rem 0",
+        boxShadow:"0 16px 48px rgba(10,22,40,0.2)", position:"relative", overflow:"hidden"}}>
+        <svg style={{position:"absolute",top:0,right:0,opacity:0.08}} width="200" height="200" viewBox="0 0 200 200">
+          <circle cx="160" cy="40" r="100" stroke="white" strokeWidth="1" fill="none"/>
+          <circle cx="160" cy="40" r="60"  stroke="white" strokeWidth="1" fill="none"/>
+        </svg>
+        <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:"1.5rem", flexWrap:"wrap", gap:"1rem"}}>
+          <div>
+            <div style={{color:"rgba(255,255,255,0.5)", fontSize:"0.7rem", fontWeight:700,
+              letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:4}}>Professor</div>
+            <div style={{color:C.white, fontSize:"1.6rem", fontWeight:800}}>{teacher.name}</div>
+          </div>
+          {level && (
+            <div style={{background:"rgba(255,255,255,0.15)", borderRadius:12, padding:"0.6rem 1rem",
+              backdropFilter:"blur(8px)", border:"1px solid rgba(255,255,255,0.2)"}}>
+              <div style={{color:"rgba(255,255,255,0.6)", fontSize:"0.65rem", fontWeight:700, textTransform:"uppercase"}}>Nível</div>
+              <div style={{color:C.white, fontWeight:700, fontSize:"0.95rem"}}>{level.name}</div>
+              <div style={{color:"rgba(255,255,255,0.6)", fontSize:"0.75rem"}}>{level.patente}</div>
+            </div>
+          )}
+        </div>
+        <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))", gap:"1rem"}}>
+          {[
+            ["ID", teacher.id],
+            ["Email", teacher.email||"—"],
+            ["Telefone", teacher.telefone||"—"],
+            ["Morada", teacher.morada||"—"],
+            ["Grau Académico", teacher.grauAcademico||"—"],
+            ["Ano de Adesão", teacher.anoAdesao||"—"],
+          ].map(([label, value]) => (
+            <div key={label}>
+              <div style={{color:"rgba(255,255,255,0.45)", fontSize:"0.65rem", fontWeight:700,
+                letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:3}}>{label}</div>
+              <div style={{color:C.white, fontSize:"0.88rem", fontWeight:500}}>{value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Classes & Subjects */}
+      <h2 style={{...T.h2, marginBottom:"1rem"}}>Turmas & Disciplinas</h2>
+      <div style={{display:"grid", gap:"0.75rem", marginBottom:"2rem"}}>
+        {myClasses.map(cls => {
+          const n = students.filter(s=>s.classId===cls.id).length;
+          const isCIM = cls.type!=="madrassa";
+          const color = isCIM?C.blue:C.green;
+          return (
+            <Card key={cls.id} style={{padding:"1rem 1.2rem"}}>
+              <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:(cls.subjects||[]).length?8:0}}>
+                <div style={{display:"flex", alignItems:"center", gap:10}}>
+                  <div style={{width:36, height:36, background:color+"18", borderRadius:9,
+                    display:"flex", alignItems:"center", justifyContent:"center"}}>
+                    <Icon name="classes" size={18} color={color}/>
+                  </div>
+                  <div>
+                    <div style={{fontWeight:600, color:C.navy}}>{cls.name}
+                      <span style={{marginLeft:8, background:color+"22", color, borderRadius:20,
+                        padding:"1px 7px", fontSize:"0.68rem", fontWeight:700}}>
+                        {isCIM?"CIM":"Madrassa"}
+                      </span>
+                    </div>
+                    <div style={T.small}>{n} aluno{n!==1?"s":""} · {cls.year}</div>
+                  </div>
+                </div>
+              </div>
+              {(cls.subjects||[]).length>0 && (
+                <div style={{display:"flex", gap:6, flexWrap:"wrap", paddingLeft:46}}>
+                  {(cls.subjects||[]).map(s=>(
+                    <span key={s.id} style={{background:C.bluePale, color:C.blue, borderRadius:20,
+                      padding:"2px 10px", fontSize:"0.78rem", fontWeight:600}}>{s.name}</span>
+                  ))}
+                </div>
+              )}
+            </Card>
+          );
+        })}
+        {myClasses.length===0 && <p style={T.body}>Nenhuma turma atribuída.</p>}
+      </div>
+
+      {/* Schedule */}
+      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"1rem"}}>
+        <h2 style={T.h2}>Horário Semanal</h2>
+        <Btn variant="secondary" icon="report" size="sm" onClick={downloadSchedulePDF}>
+          Download PDF
+        </Btn>
+      </div>
+      <div ref={scheduleRef}>
+        <TeacherScheduleView teacher={teacher} data={data}/>
+      </div>
+    </div>
+  );
+}
+
+function TeacherScheduleView({ teacher, data }) {
+  const { classes } = data;
+  const myClasses = classes.filter(c=>c.teacherId===teacher.id);
+
+  return (
+    <Card style={{padding:0, overflow:"hidden"}}>
+      <table style={{width:"100%", borderCollapse:"collapse"}}>
+        <thead>
+          <tr style={{background:C.navy}}>
+            <th style={{...thS, color:C.white, background:C.navy, width:100, textAlign:"left", paddingLeft:12}}>Hora</th>
+            {DAYS.map(d=><th key={d} style={{...thS, color:C.white, background:C.navy}}>{d}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {(() => {
+            // Collect all unique time slots across all classes
+            const allSlots = myClasses.flatMap(cls =>
+              (cls.schedule||[])
+                .filter(s=>!s.slotTeacherId||s.slotTeacherId===teacher.id)
+                .map(s=>({
+                  ...s,
+                  className:cls.name,
+                  classType:cls.type||"cim",
+                  subjectName:(cls.subjects||[]).find(x=>x.id===s.subjectId)?.name||"",
+                }))
+            );
+            const times = [...new Set(allSlots.map(s=>`${s.start}-${s.end}`))].sort();
+            if (times.length===0) return (
+              <tr><td colSpan={6} style={{textAlign:"center", padding:"2rem", color:C.slateLight}}>
+                Sem horário definido
+              </td></tr>
+            );
+            return times.map((time,i) => {
+              const [start,end] = time.split("-");
+              return (
+                <tr key={time} style={{background:i%2===0?C.white:C.blueFaint}}>
+                  <td style={{padding:"0.6rem 0.75rem", fontFamily:"'Courier New',monospace",
+                    fontSize:"0.8rem", fontWeight:700, color:C.navy, whiteSpace:"nowrap"}}>
+                    {start}–{end}
+                  </td>
+                  {DAYS.map(day=>{
+                    const slot = allSlots.find(s=>s.day===day&&s.start===start&&s.end===end);
+                    const color = slot?.classType==="madrassa"?C.green:C.blue;
+                    return (
+                      <td key={day} style={{padding:"0.5rem", textAlign:"center", borderLeft:`1px solid ${C.line}`}}>
+                        {slot ? (
+                          <div style={{background:color+"18", borderRadius:6, padding:"4px 6px"}}>
+                            <div style={{fontWeight:600, fontSize:"0.78rem", color}}>{slot.className}</div>
+                            {slot.subjectName && <div style={{fontSize:"0.7rem", color:C.slate}}>{slot.subjectName}</div>}
+                          </div>
+                        ) : <span style={{color:C.line}}>—</span>}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            });
+          })()}
+        </tbody>
+      </table>
+    </Card>
+  );
+}
+
+// ── Student Card (full info) ──────────────────────────────────────────────────
+function StudentCard({ student, data, onSave, onBack }) {
+  const { classes, teachers, levels } = data;
+  const cls     = classes.find(c=>c.id===student.classId);
+  const teacher = teachers.find(t=>t.id===cls?.teacherId);
+  const subjects = cls?.subjects||[];
+  const [editing, setEditing] = useState(false);
+  const [form, setForm]       = useState({...student});
+
+  function saveEdit() {
+    onSave(data.students.map(s=>s.id===student.id?{...s,...form}:s));
+    setEditing(false);
+  }
+
+  const INFO_FIELDS = [
+    ["Data de Nascimento","dataNascimento","DD/MM/AAAA"],
+    ["Morada","morada","Rua, nº, cidade"],
+    ["Contacto dos Pais","contactoPais","+351 9xx xxx xxx"],
+    ["Nome do Pai/Encarregado","nomePai","Nome completo"],
+    ["Ano de Adesão","anoAdesao","Ex: 2023"],
+  ];
+
+  return (
+    <div>
+      <Btn variant="secondary" icon="back" size="sm" onClick={onBack}>Voltar</Btn>
+
+      {/* Profile Card */}
+      <div style={{background:`linear-gradient(135deg,${C.navy} 0%,${C.blue} 100%)`,
+        borderRadius:20, padding:"2rem", margin:"1.5rem 0",
+        boxShadow:"0 16px 48px rgba(10,22,40,0.2)", position:"relative", overflow:"hidden"}}>
+        <svg style={{position:"absolute",top:0,right:0,opacity:0.08}} width="200" height="200" viewBox="0 0 200 200">
+          <circle cx="160" cy="40" r="100" stroke="white" strokeWidth="1" fill="none"/>
+        </svg>
+        <div style={{display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:"1.5rem", flexWrap:"wrap", gap:"1rem"}}>
+          <div>
+            <div style={{color:"rgba(255,255,255,0.5)", fontSize:"0.7rem", fontWeight:700,
+              letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:4}}>Aluno</div>
+            <div style={{color:C.white, fontSize:"1.6rem", fontWeight:800}}>{student.name}</div>
+          </div>
+          <div style={{background:"rgba(255,255,255,0.15)", borderRadius:12, padding:"0.6rem 1rem"}}>
+            <div style={{color:"rgba(255,255,255,0.6)", fontSize:"0.65rem", fontWeight:700, textTransform:"uppercase"}}>Nº CIM</div>
+            <div style={{color:C.white, fontWeight:800, fontSize:"1.1rem", fontFamily:"'Courier New',monospace"}}>
+              {student.code}
+            </div>
+          </div>
+        </div>
+        <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:"1rem"}}>
+          {[
+            ["Turma", cls?.name||"—"],
+            ["Professor", teacher?.name||"—"],
+            ["Data de Nascimento", student.dataNascimento||"—"],
+            ["Morada", student.morada||"—"],
+            ["Contacto dos Pais", student.contactoPais||"—"],
+            ["Encarregado", student.nomePai||"—"],
+            ["Ano de Adesão", student.anoAdesao||"—"],
+          ].map(([label,value])=>(
+            <div key={label}>
+              <div style={{color:"rgba(255,255,255,0.45)",fontSize:"0.65rem",fontWeight:700,
+                letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:3}}>{label}</div>
+              <div style={{color:C.white,fontSize:"0.88rem",fontWeight:500}}>{value}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{marginTop:"1rem"}}>
+          <button onClick={()=>setEditing(!editing)} style={{background:"rgba(255,255,255,0.15)",
+            border:"1px solid rgba(255,255,255,0.3)", color:C.white, borderRadius:8,
+            padding:"0.4rem 0.9rem", cursor:"pointer", fontSize:"0.82rem", fontWeight:600}}>
+            {editing?"Cancelar":"Editar Informação"}
+          </button>
+        </div>
+      </div>
+
+      {/* Edit form */}
+      {editing && (
+        <Card style={{marginBottom:"1.5rem"}}>
+          <h2 style={{...T.h2, fontSize:"1rem", marginBottom:"1rem"}}>Editar Informação</h2>
+          <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:"1rem", marginBottom:"1rem"}}>
+            {INFO_FIELDS.map(([label,field,ph])=>(
+              <div key={field}>
+                <div style={{...T.label, marginBottom:5}}>{label}</div>
+                <input style={inp} value={form[field]||""} placeholder={ph}
+                  onChange={e=>setForm({...form,[field]:e.target.value})}/>
+              </div>
+            ))}
+          </div>
+          <Btn icon="check" variant="success" onClick={saveEdit}>Guardar</Btn>
+        </Card>
+      )}
+
+      {/* Grades */}
+      {subjects.length>0 && <>
+        <h2 style={{...T.h2, marginBottom:"1rem"}}>Notas</h2>
+        {subjects.map(subj=>{
+          const g=student.grades?.[subj.id]||{};
+          const t1=trimAvg(g,1),t2=trimAvg(g,2),t3=trimAvg(g,3);
+          const mF=avg(t1,t2,t3);
+          return (
+            <Card key={subj.id} style={{marginBottom:"1rem",padding:0,overflow:"hidden"}}>
+              <div style={{background:C.blue,padding:"0.6rem 1rem",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <span style={{color:C.white,fontWeight:700}}>{subj.name}</span>
+                <span style={{color:C.bluePale,fontSize:"0.82rem"}}>Faltas: {g.faltas??0}</span>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr"}}>
+                {[1,2,3].map(t=>(
+                  <div key={t} style={{padding:"0.75rem",borderRight:`1px solid ${C.line}`,textAlign:"center"}}>
+                    <div style={{...T.label,marginBottom:6}}>T{t}</div>
+                    <div style={{display:"flex",gap:6,justifyContent:"center",marginBottom:4}}>
+                      {["1as","2as","at"].map(f=>(
+                        <div key={f} style={{textAlign:"center"}}>
+                          <div style={{...T.small,fontSize:"0.62rem"}}>{f.toUpperCase()}</div>
+                          <div style={{fontWeight:700}}><GradeCell val={g[`t${t}_${f}`]}/></div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{fontWeight:700,color:C.blue}}><GradeCell val={[t1,t2,t3][t-1]}/></div>
+                  </div>
+                ))}
+                <div style={{padding:"0.75rem",textAlign:"center",
+                  background:mF!==null&&mF>=12?C.greenPale:mF!==null?C.redPale:C.sand}}>
+                  <div style={{...T.label,marginBottom:4}}>Média Final</div>
+                  <div style={{fontSize:"1.4rem",fontWeight:800}}><GradeCell val={mF}/></div>
+                  {mF!==null&&mF>=12&&<>
+                    <div style={{...T.label,marginTop:6,marginBottom:2,color:C.purple}}>Exame Final</div>
+                    <div style={{fontWeight:700}}><GradeCell val={g.exame_final}/></div>
+                  </>}
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+      </>}
+
+      {/* Schedule */}
+      {cls && <>
+        <h2 style={{...T.h2, margin:"1.5rem 0 1rem"}}>Horário da Turma</h2>
+        <Card style={{padding:0, overflow:"hidden"}}>
+          <table style={{width:"100%", borderCollapse:"collapse"}}>
+            <thead>
+              <tr style={{background:C.navy}}>
+                <th style={{...thS,color:C.white,background:C.navy,textAlign:"left",paddingLeft:12,width:100}}>Hora</th>
+                {DAYS.map(d=><th key={d} style={{...thS,color:C.white,background:C.navy}}>{d}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {(() => {
+                const allSlots = (cls.schedule||[]).map(s=>({
+                  ...s,
+                  subjectName:(cls.subjects||[]).find(x=>x.id===s.subjectId)?.name||"",
+                }));
+                const times=[...new Set(allSlots.map(s=>`${s.start}-${s.end}`))].sort();
+                if (!times.length) return (
+                  <tr><td colSpan={6} style={{textAlign:"center",padding:"2rem",color:C.slateLight}}>
+                    Sem horário definido
+                  </td></tr>
+                );
+                const color = cls.type==="madrassa"?C.green:C.blue;
+                return times.map((time,i)=>{
+                  const [start,end]=time.split("-");
+                  return (
+                    <tr key={time} style={{background:i%2===0?C.white:C.blueFaint}}>
+                      <td style={{padding:"0.6rem 0.75rem",fontFamily:"'Courier New',monospace",
+                        fontSize:"0.8rem",fontWeight:700,color:C.navy,whiteSpace:"nowrap"}}>
+                        {start}–{end}
+                      </td>
+                      {DAYS.map(day=>{
+                        const slot=allSlots.find(s=>s.day===day&&s.start===start&&s.end===end);
+                        return (
+                          <td key={day} style={{padding:"0.5rem",textAlign:"center",borderLeft:`1px solid ${C.line}`}}>
+                            {slot?(
+                              <div style={{background:color+"18",borderRadius:6,padding:"4px 6px"}}>
+                                <div style={{fontWeight:600,fontSize:"0.78rem",color}}>
+                                  {slot.subjectName||cls.name}
+                                </div>
+                              </div>
+                            ):<span style={{color:C.line}}>—</span>}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                });
+              })()}
+            </tbody>
+          </table>
+        </Card>
+      </>}
     </div>
   );
 }
@@ -1105,70 +1584,6 @@ function GradeManager({ data, onSave, filterTeacherId }) {
           )}
         </>
       )}
-    </div>
-  );
-}
-
-// ── Student Detail ────────────────────────────────────────────────────────────
-function StudentDetail({ student, data, onSave, onBack }) {
-  const {classes, teachers} = data;
-  const cls     = classes.find(c=>c.id===student.classId);
-  const teacher = teachers.find(t=>t.id===cls?.teacherId);
-  const subjects = cls?.subjects||[];
-
-  return (
-    <div>
-      <Btn variant="secondary" icon="back" size="sm" onClick={onBack}>Voltar</Btn>
-      <div style={{margin:"1.5rem 0"}}>
-        <h1 style={T.h1}>{student.name}</h1>
-        <div style={{display:"flex", gap:10, marginTop:6, flexWrap:"wrap", alignItems:"center"}}>
-          <span style={T.mono}>{student.code}</span>
-          {cls && <Badge color="blue">{cls.name}</Badge>}
-          {teacher && <span style={T.small}>Prof: {teacher.name}</span>}
-        </div>
-      </div>
-      {subjects.map(subj => {
-        const g  = student.grades?.[subj.id]||{};
-        const t1=trimAvg(g,1), t2=trimAvg(g,2), t3=trimAvg(g,3);
-        const mF = avg(t1,t2,t3);
-        return (
-          <Card key={subj.id} style={{marginBottom:"1rem", padding:0, overflow:"hidden"}}>
-            <div style={{background:C.blue, padding:"0.6rem 1rem", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-              <span style={{color:C.white, fontWeight:700, fontSize:"0.9rem"}}>{subj.name}</span>
-              <span style={{color:C.bluePale, fontSize:"0.82rem"}}>Faltas: {g.faltas??0}</span>
-            </div>
-            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr"}}>
-              {[1,2,3].map(t => (
-                <div key={t} style={{padding:"0.75rem", borderRight:`1px solid ${C.line}`, textAlign:"center"}}>
-                  <div style={{...T.label, marginBottom:6}}>T{t}</div>
-                  <div style={{display:"flex", gap:6, justifyContent:"center", marginBottom:4}}>
-                    {["1as","2as","at"].map(f=>(
-                      <div key={f} style={{textAlign:"center"}}>
-                        <div style={{...T.small, fontSize:"0.62rem"}}>{f.toUpperCase()}</div>
-                        <div style={{fontWeight:700}}><GradeCell val={g[`t${t}_${f}`]}/></div>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{fontWeight:700, color:C.blue, fontSize:"0.9rem"}}>
-                    Méd: <GradeCell val={[t1,t2,t3][t-1]}/>
-                  </div>
-                </div>
-              ))}
-              <div style={{padding:"0.75rem", textAlign:"center", background:mF!==null&&mF>=12?C.greenPale:mF!==null?C.redPale:C.sand}}>
-                <div style={{...T.label, marginBottom:6}}>Média Final</div>
-                <div style={{fontSize:"1.4rem", fontWeight:800}}><GradeCell val={mF}/></div>
-                {mF!==null && mF>=12 && (
-                  <>
-                    <div style={{...T.label, marginTop:8, marginBottom:4, color:C.purple}}>Exame Final</div>
-                    <div style={{fontWeight:700}}><GradeCell val={g.exame_final}/></div>
-                  </>
-                )}
-              </div>
-            </div>
-          </Card>
-        );
-      })}
-      {subjects.length===0 && <p style={T.body}>Nenhuma disciplina atribuída a esta turma.</p>}
     </div>
   );
 }
