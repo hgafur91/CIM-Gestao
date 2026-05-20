@@ -546,6 +546,7 @@ function TeacherManager({ data, onSave, onSelect }) {
 function TeacherCard({ teacher, data, onSaveTeachers, onBack }) {
   const {classes,students,levels}=data;
   const level=levels.find(l=>l.id===teacher.levelId);
+  const scheduleRef=useRef();
 
   // Show classes where teacher is responsible OR has slots assigned
   const myClasses=classes.filter(c=>
