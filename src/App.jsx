@@ -546,10 +546,13 @@ function TeacherManager({ data, onSave, onSelect }) {
 function TeacherCard({ teacher, data, onSaveTeachers, onBack }) {
   const {classes,students,levels}=data;
   const level=levels.find(l=>l.id===teacher.levelId);
-  const myClasses=classes.filter(c=>c.teacherId===teacher.id);
-  const scheduleRef=useRef();
 
-  // Build all slots for this teacher
+  // Show classes where teacher is responsible OR has slots assigned
+  const myClasses=classes.filter(c=>
+    c.teacherId===teacher.id ||
+    (c.schedule||[]).some(s=>s.slotTeacherId===teacher.id)
+  );
+
   const allSlots=myClasses.flatMap(cls=>
     (cls.schedule||[])
       .filter(s=>!s.slotTeacherId||s.slotTeacherId===""||s.slotTeacherId===teacher.id)
@@ -1154,7 +1157,10 @@ function Settings({ apiKey, onSave }) {
 // TEACHER SHELL
 // ═══════════════════════════════════════════════════════════════════════════════
 function TeacherShell({ user, data, save, onLogout }) {
-  const myClasses=data.classes.filter(c=>c.teacherId===user.id);
+  const myClasses=data.classes.filter(c=>
+    c.teacherId===user.id ||
+    (c.schedule||[]).some(s=>s.slotTeacherId===user.id)
+  );
   const myStudents=data.students.filter(s=>myClasses.some(c=>c.id===s.classId));
   const myReports=data.reports.filter(r=>r.teacherId===user.id).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
   const nav=[
@@ -1179,7 +1185,10 @@ function TeacherShell({ user, data, save, onLogout }) {
 
 function TeacherSchedulePage({ user, data }) {
   const {classes}=data;
-  const myClasses=classes.filter(c=>c.teacherId===user.id);
+  const myClasses=classes.filter(c=>
+    c.teacherId===user.id ||
+    (c.schedule||[]).some(s=>s.slotTeacherId===user.id)
+  );
   const allSlots=myClasses.flatMap(cls=>
     (cls.schedule||[])
       .filter(s=>!s.slotTeacherId||s.slotTeacherId===""||s.slotTeacherId===user.id)
