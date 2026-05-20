@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 // ── Supabase ──────────────────────────────────────────────────────────────────
 const SUPA_URL = "https://bhclzbohhskhmnzcsqux.supabase.co";
@@ -314,7 +314,7 @@ export default function App() {
     apiKey:   useCallback(async v => { setApiKey(v);   await supa.setConfig("apikey", v); }, []),
   };
 
-  function login(id, pw) {
+  const login = useCallback((id, pw) => {
     if (id==="coord" && pw==="admin123") {
       setUser({id:"coord",name:"Coordenador",role:"coord"}); return true;
     }
@@ -323,11 +323,13 @@ export default function App() {
     const s = students.find(s=>s.code===id&&s.name.split(" ")[0].toLowerCase()===pw.toLowerCase());
     if (s) { setUser({...s,role:"student"}); return true; }
     return false;
-  }
+  }, [teachers, students]);
 
-  const data = { teachers, classes, students, reports, levels, apiKey };
+  const data = useMemo(() => (
+    { teachers, classes, students, reports, levels, apiKey }
+  ), [teachers, classes, students, reports, levels, apiKey]);
 
-  if (loading) return (
+  if (loading && !user) return (
     <div style={{minHeight:"100vh",background:`linear-gradient(160deg,${C.navy} 0%,#112244 100%)`,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:"1.5rem",fontFamily:"'Segoe UI',system-ui,sans-serif"}}>
       <div style={{width:72,height:72,background:"rgba(255,255,255,0.1)",borderRadius:20,display:"flex",alignItems:"center",justifyContent:"center",border:"1px solid rgba(255,255,255,0.15)"}}>
         <Icon name="mosque" size={36} color={C.white} sw={1.4}/>
@@ -337,7 +339,7 @@ export default function App() {
     </div>
   );
 
-  if (!user)             return <LoginScreen onLogin={login}/>;
+  if (!user) return <LoginScreen onLogin={login}/>;
   if (user.role==="coord")   return <CoordShell   user={user} data={data} save={save} onLogout={()=>setUser(null)}/>;
   if (user.role==="teacher") return <TeacherShell user={user} data={data} save={save} onLogout={()=>setUser(null)}/>;
   if (user.role==="student") return <StudentShell user={user} data={data} onLogout={()=>setUser(null)}/>;
