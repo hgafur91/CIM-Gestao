@@ -349,8 +349,15 @@ export default function App() {
 // LOGIN
 // ═══════════════════════════════════════════════════════════════════════════════
 function LoginScreen({ onLogin }) {
-  const [id,setId]=useState(""); const [pw,setPw]=useState(""); const [err,setErr]=useState("");
-  function submit(){if(!onLogin(id.trim(),pw))setErr("Credenciais inválidas.");}
+  const idRef = useRef(); const pwRef = useRef();
+  const [err, setErr] = useState("");
+
+  function submit() {
+    const id = idRef.current.value.trim();
+    const pw = pwRef.current.value;
+    if (!onLogin(id, pw)) setErr("Credenciais inválidas.");
+  }
+
   return (
     <div style={{minHeight:"100vh",background:`linear-gradient(160deg,${C.navy} 0%,#112244 100%)`,display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem",fontFamily:"'Segoe UI',system-ui,sans-serif"}}>
       <div style={{width:"100%",maxWidth:400}}>
@@ -365,11 +372,13 @@ function LoginScreen({ onLogin }) {
           <p style={{...T.body,marginBottom:"1.5rem",fontWeight:500}}>Iniciar sessão</p>
           <div style={{marginBottom:"1rem"}}>
             <div style={{...T.label,marginBottom:5}}>Identificador</div>
-            <input style={inp} value={id} placeholder="coord · prof01 · CIM0001" onChange={e=>setId(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()}/>
+            <input ref={idRef} style={inp} placeholder="coord · prof01 · CIM0001"
+              defaultValue="" onKeyDown={e=>e.key==="Enter"&&submit()}/>
           </div>
           <div style={{marginBottom:"1.5rem"}}>
             <div style={{...T.label,marginBottom:5}}>Palavra-passe</div>
-            <input style={inp} type="password" value={pw} placeholder="••••••••" onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()}/>
+            <input ref={pwRef} style={inp} type="password" placeholder="••••••••"
+              defaultValue="" onKeyDown={e=>e.key==="Enter"&&submit()}/>
           </div>
           {err&&<div style={{color:C.red,fontSize:"0.84rem",marginBottom:"1rem",background:C.redPale,borderRadius:8,padding:"0.6rem 0.9rem",display:"flex",alignItems:"center",gap:8}}><Icon name="alert" size={16} color={C.red}/>{err}</div>}
           <Btn full size="lg" onClick={submit}>Entrar</Btn>
