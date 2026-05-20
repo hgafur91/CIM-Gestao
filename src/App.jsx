@@ -1,9 +1,57 @@
 import { useState, useEffect, useRef } from "react";
 
-// ── Storage ───────────────────────────────────────────────────────────────────
-const db = {
-  get: (k) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch { return null; } },
-  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+// ── Supabase ──────────────────────────────────────────────────────────────────
+const SUPA_URL = "https://bhclzbohhskhmnzcsqux.supabase.co";
+const SUPA_KEY = "sb_publishable_kqyWUbGN9sNapWyZtYTYDA_aMZuH4t_";
+
+const supa = {
+  async getAll(table) {
+    try {
+      const res = await fetch(`${SUPA_URL}/rest/v1/${table}?select=*`, {
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+      });
+      const rows = await res.json();
+      if (!Array.isArray(rows)) return [];
+      return rows.map(r => r.data);
+    } catch { return []; }
+  },
+
+  async upsertAll(table, items) {
+    try {
+      // Delete all then insert — simple full sync
+      await fetch(`${SUPA_URL}/rest/v1/${table}?id=neq.___none___`, {
+        method: "DELETE",
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, "Content-Type": "application/json" }
+      });
+      if (!items.length) return;
+      const rows = items.map(item => ({ id: item.id || `row_${Date.now()}_${Math.random()}`, data: item }));
+      await fetch(`${SUPA_URL}/rest/v1/${table}`, {
+        method: "POST",
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+        body: JSON.stringify(rows)
+      });
+    } catch (e) { console.error("Supabase error:", e); }
+  },
+
+  async getConfig(key) {
+    try {
+      const res = await fetch(`${SUPA_URL}/rest/v1/cim_config?key=eq.${key}&select=value`, {
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
+      });
+      const rows = await res.json();
+      return rows?.[0]?.value || null;
+    } catch { return null; }
+  },
+
+  async setConfig(key, value) {
+    try {
+      await fetch(`${SUPA_URL}/rest/v1/cim_config`, {
+        method: "POST",
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+        body: JSON.stringify({ key, value })
+      });
+    } catch {}
+  }
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -225,23 +273,33 @@ export default function App() {
   const [reports,  setReports]  = useState([]);
   const [levels,   setLevels]   = useState([]);
   const [apiKey,   setApiKey]   = useState("");
+  const [loading,  setLoading]  = useState(true);
 
   useEffect(() => {
-    setTeachers(db.get("cim:teachers") || []);
-    setClasses( db.get("cim:classes")  || []);
-    setStudents(db.get("cim:students") || []);
-    setReports( db.get("cim:reports")  || []);
-    setLevels(  db.get("cim:levels")   || []);
-    setApiKey(  db.get("cim:apikey")   || "");
+    async function load() {
+      setLoading(true);
+      const [t, c, s, r, l, k] = await Promise.all([
+        supa.getAll("cim_teachers"),
+        supa.getAll("cim_classes"),
+        supa.getAll("cim_students"),
+        supa.getAll("cim_reports"),
+        supa.getAll("cim_levels"),
+        supa.getConfig("apikey"),
+      ]);
+      setTeachers(t); setClasses(c); setStudents(s);
+      setReports(r);  setLevels(l);  setApiKey(k || "");
+      setLoading(false);
+    }
+    load();
   }, []);
 
   const save = {
-    teachers: v => { setTeachers(v); db.set("cim:teachers", v); },
-    classes:  v => { setClasses(v);  db.set("cim:classes",  v); },
-    students: v => { setStudents(v); db.set("cim:students", v); },
-    reports:  v => { setReports(v);  db.set("cim:reports",  v); },
-    levels:   v => { setLevels(v);   db.set("cim:levels",   v); },
-    apiKey:   v => { setApiKey(v);   db.set("cim:apikey",   v); },
+    teachers: async v => { setTeachers(v); await supa.upsertAll("cim_teachers", v); },
+    classes:  async v => { setClasses(v);  await supa.upsertAll("cim_classes",  v); },
+    students: async v => { setStudents(v); await supa.upsertAll("cim_students", v); },
+    reports:  async v => { setReports(v);  await supa.upsertAll("cim_reports",  v); },
+    levels:   async v => { setLevels(v);   await supa.upsertAll("cim_levels",   v); },
+    apiKey:   async v => { setApiKey(v);   await supa.setConfig("apikey", v); },
   };
 
   function login(id, pw) {
@@ -256,6 +314,16 @@ export default function App() {
   }
 
   const data = { teachers, classes, students, reports, levels, apiKey };
+
+  if (loading) return (
+    <div style={{minHeight:"100vh",background:`linear-gradient(160deg,${C.navy} 0%,#112244 100%)`,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:"1.5rem",fontFamily:"'Segoe UI',system-ui,sans-serif"}}>
+      <div style={{width:72,height:72,background:"rgba(255,255,255,0.1)",borderRadius:20,display:"flex",alignItems:"center",justifyContent:"center",border:"1px solid rgba(255,255,255,0.15)"}}>
+        <Icon name="mosque" size={36} color={C.white} sw={1.4}/>
+      </div>
+      <div style={{color:C.white,fontWeight:700,fontSize:"1.5rem"}}>C.I.M</div>
+      <div style={{color:"rgba(255,255,255,0.5)",fontSize:"0.88rem"}}>A carregar...</div>
+    </div>
+  );
 
   if (!user)             return <LoginScreen onLogin={login}/>;
   if (user.role==="coord")   return <CoordShell   user={user} data={data} save={save} onLogout={()=>setUser(null)}/>;
