@@ -3,41 +3,49 @@ import { useState, useEffect, useRef } from "react";
 // ── Supabase ──────────────────────────────────────────────────────────────────
 const SUPA_URL = "https://bhclzbohhskhmnzcsqux.supabase.co";
 const SUPA_KEY = "sb_publishable_kqyWUbGN9sNapWyZtYTYDA_aMZuH4t_";
+const HEADERS = {
+  "apikey": SUPA_KEY,
+  "Authorization": `Bearer ${SUPA_KEY}`,
+  "Content-Type": "application/json",
+  "Prefer": "return=representation"
+};
 
 const supa = {
   async getAll(table) {
     try {
-      const res = await fetch(`${SUPA_URL}/rest/v1/${table}?select=*`, {
-        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
-      });
+      const res = await fetch(`${SUPA_URL}/rest/v1/${table}?select=*`, { headers: HEADERS });
+      if (!res.ok) { console.error(`getAll ${table}:`, res.status, await res.text()); return []; }
       const rows = await res.json();
       if (!Array.isArray(rows)) return [];
       return rows.map(r => r.data);
-    } catch { return []; }
+    } catch (e) { console.error(e); return []; }
   },
 
   async upsertAll(table, items) {
     try {
-      // Delete all then insert — simple full sync
-      await fetch(`${SUPA_URL}/rest/v1/${table}?id=neq.___none___`, {
+      // Delete existing rows
+      await fetch(`${SUPA_URL}/rest/v1/${table}?id=neq.___`, {
         method: "DELETE",
-        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, "Content-Type": "application/json" }
+        headers: HEADERS
       });
       if (!items.length) return;
-      const rows = items.map(item => ({ id: item.id || `row_${Date.now()}_${Math.random()}`, data: item }));
-      await fetch(`${SUPA_URL}/rest/v1/${table}`, {
+      const rows = items.map(item => ({
+        id: item.id || `row_${Date.now()}_${Math.random()}`,
+        data: item
+      }));
+      const res = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
         method: "POST",
-        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+        headers: { ...HEADERS, Prefer: "resolution=merge-duplicates" },
         body: JSON.stringify(rows)
       });
-    } catch (e) { console.error("Supabase error:", e); }
+      if (!res.ok) console.error(`upsertAll ${table}:`, res.status, await res.text());
+    } catch (e) { console.error(e); }
   },
 
   async getConfig(key) {
     try {
-      const res = await fetch(`${SUPA_URL}/rest/v1/cim_config?key=eq.${key}&select=value`, {
-        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` }
-      });
+      const res = await fetch(`${SUPA_URL}/rest/v1/cim_config?key=eq.${key}&select=value`, { headers: HEADERS });
+      if (!res.ok) return null;
       const rows = await res.json();
       return rows?.[0]?.value || null;
     } catch { return null; }
@@ -47,7 +55,7 @@ const supa = {
     try {
       await fetch(`${SUPA_URL}/rest/v1/cim_config`, {
         method: "POST",
-        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates" },
+        headers: { ...HEADERS, Prefer: "resolution=merge-duplicates" },
         body: JSON.stringify({ key, value })
       });
     } catch {}
@@ -278,16 +286,20 @@ export default function App() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const [t, c, s, r, l, k] = await Promise.all([
-        supa.getAll("cim_teachers"),
-        supa.getAll("cim_classes"),
-        supa.getAll("cim_students"),
-        supa.getAll("cim_reports"),
-        supa.getAll("cim_levels"),
-        supa.getConfig("apikey"),
-      ]);
-      setTeachers(t); setClasses(c); setStudents(s);
-      setReports(r);  setLevels(l);  setApiKey(k || "");
+      try {
+        const [t, c, s, r, l, k] = await Promise.all([
+          supa.getAll("cim_teachers"),
+          supa.getAll("cim_classes"),
+          supa.getAll("cim_students"),
+          supa.getAll("cim_reports"),
+          supa.getAll("cim_levels"),
+          supa.getConfig("apikey"),
+        ]);
+        setTeachers(t); setClasses(c); setStudents(s);
+        setReports(r);  setLevels(l);  setApiKey(k || "");
+      } catch (e) {
+        console.error("Failed to load from Supabase:", e);
+      }
       setLoading(false);
     }
     load();
