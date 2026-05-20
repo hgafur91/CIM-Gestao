@@ -547,18 +547,12 @@ function LevelManager({ data, onSave }) {
 }
 
 // ── Teacher Manager ───────────────────────────────────────────────────────────
-function TeacherManager({ data, onSave, onSelect }) {
-  const {teachers,classes,students,levels}=data;
-  const [showForm,setShowForm]=useState(false);
-  const [form,setForm]=useState({name:"",password:"",email:"",telefone:"",morada:"",grauAcademico:"",levelId:"",anoAdesao:String(new Date().getFullYear())});
-  const [editing,setEditing]=useState(null);
-  const [msg,setMsg]=useState({text:"",type:""});
+const TEACHER_FIELDS=[["Nome Completo","name","Ahmed Mansur"],["Palavra-passe","password","Senha"],["Email","email","email@exemplo.com"],["Telefone","telefone","+351 9xx xxx xxx"],["Morada","morada","Rua, cidade"],["Grau Académico","grauAcademico","Ex: Licenciatura"],["Ano de Adesão","anoAdesao","Ex: 2022"]];
 
-  const FIELDS=[["Nome Completo","name","Ahmed Mansur"],["Palavra-passe","password","Senha"],["Email","email","email@exemplo.com"],["Telefone","telefone","+351 9xx xxx xxx"],["Morada","morada","Rua, cidade"],["Grau Académico","grauAcademico","Ex: Licenciatura"],["Ano de Adesão","anoAdesao","Ex: 2022"]];
-
-  const FormGrid=({vals,onChange})=>(
+function TeacherFormGrid({vals, onChange, levels}) {
+  return (
     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:"1rem",marginBottom:"1rem"}}>
-      {FIELDS.map(([label,field,ph])=>(
+      {TEACHER_FIELDS.map(([label,field,ph])=>(
         <div key={field}><div style={{...T.label,marginBottom:5}}>{label}</div><input style={inp} value={vals[field]||""} placeholder={ph} onChange={e=>onChange({...vals,[field]:e.target.value})}/></div>
       ))}
       <div><div style={{...T.label,marginBottom:5}}>Nível</div>
@@ -569,6 +563,14 @@ function TeacherManager({ data, onSave, onSelect }) {
       </div>
     </div>
   );
+}
+
+function TeacherManager({ data, onSave, onSelect }) {
+  const {teachers,classes,students,levels}=data;
+  const [showForm,setShowForm]=useState(false);
+  const [form,setForm]=useState({name:"",password:"",email:"",telefone:"",morada:"",grauAcademico:"",levelId:"",anoAdesao:String(new Date().getFullYear())});
+  const [editing,setEditing]=useState(null);
+  const [msg,setMsg]=useState({text:"",type:""});
 
   function add(){
     if(!form.name||!form.password){setMsg({text:"Nome e senha obrigatórios.",type:"error"});return;}
@@ -589,7 +591,7 @@ function TeacherManager({ data, onSave, onSelect }) {
         <h1 style={T.h1}>Professores</h1>
         <Btn icon={showForm?"back":"plus"} onClick={()=>setShowForm(!showForm)}>{showForm?"Cancelar":"Novo Professor"}</Btn>
       </div>
-      {showForm&&<Card style={{marginBottom:"1.5rem"}}><h2 style={{...T.h2,fontSize:"1rem",marginBottom:"1.2rem"}}>Novo Professor</h2><FormGrid vals={form} onChange={setForm}/><div style={{display:"flex",alignItems:"center",gap:"1rem"}}><Btn icon="plus" onClick={add}>Criar</Btn><Msg {...msg}/></div></Card>}
+      {showForm&&<Card style={{marginBottom:"1.5rem"}}><h2 style={{...T.h2,fontSize:"1rem",marginBottom:"1.2rem"}}>Novo Professor</h2><TeacherFormGrid vals={form} onChange={setForm} levels={levels}/><div style={{display:"flex",alignItems:"center",gap:"1rem"}}><Btn icon="plus" onClick={add}>Criar</Btn><Msg {...msg}/></div></Card>}
       {!showForm&&msg.text&&<Msg {...msg}/>}
       <div style={{display:"grid",gap:"0.75rem"}}>
         {teachers.map(t=>{
@@ -600,7 +602,7 @@ function TeacherManager({ data, onSave, onSelect }) {
           return(
             <Card key={t.id} style={{padding:"1rem 1.2rem"}}>
               {isEd?(
-                <div><FormGrid vals={editing} onChange={setEditing}/><div style={{display:"flex",gap:8}}><Btn icon="check" variant="success" size="sm" onClick={saveEdit}>Guardar</Btn><Btn variant="ghost" size="sm" onClick={()=>setEditing(null)}>Cancelar</Btn></div></div>
+                <div><TeacherFormGrid vals={editing} onChange={setEditing} levels={levels}/><div style={{display:"flex",gap:8}}><Btn icon="check" variant="success" size="sm" onClick={saveEdit}>Guardar</Btn><Btn variant="ghost" size="sm" onClick={()=>setEditing(null)}>Cancelar</Btn></div></div>
               ):(
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
                   <div style={{display:"flex",alignItems:"center",gap:14,cursor:"pointer",flex:1,minWidth:0}} onClick={()=>onSelect(t)}>
