@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 // ── Supabase ──────────────────────────────────────────────────────────────────
 const SUPA_URL = "https://bhclzbohhskhmnzcsqux.supabase.co";
@@ -306,12 +306,12 @@ export default function App() {
   }, []);
 
   const save = {
-    teachers: async v => { setTeachers(v); await supa.upsertAll("cim_teachers", v); },
-    classes:  async v => { setClasses(v);  await supa.upsertAll("cim_classes",  v); },
-    students: async v => { setStudents(v); await supa.upsertAll("cim_students", v); },
-    reports:  async v => { setReports(v);  await supa.upsertAll("cim_reports",  v); },
-    levels:   async v => { setLevels(v);   await supa.upsertAll("cim_levels",   v); },
-    apiKey:   async v => { setApiKey(v);   await supa.setConfig("apikey", v); },
+    teachers: useCallback(async v => { setTeachers(v); await supa.upsertAll("cim_teachers", v); }, []),
+    classes:  useCallback(async v => { setClasses(v);  await supa.upsertAll("cim_classes",  v); }, []),
+    students: useCallback(async v => { setStudents(v); await supa.upsertAll("cim_students", v); }, []),
+    reports:  useCallback(async v => { setReports(v);  await supa.upsertAll("cim_reports",  v); }, []),
+    levels:   useCallback(async v => { setLevels(v);   await supa.upsertAll("cim_levels",   v); }, []),
+    apiKey:   useCallback(async v => { setApiKey(v);   await supa.setConfig("apikey", v); }, []),
   };
 
   function login(id, pw) {
