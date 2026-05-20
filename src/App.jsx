@@ -315,7 +315,7 @@ export default function App() {
   };
 
   function login(id, pw) {
-    if (id==="coord" && pw===(db.get("cim:coordpass")||"admin123")) {
+    if (id==="coord" && pw==="admin123") {
       setUser({id:"coord",name:"Coordenador",role:"coord"}); return true;
     }
     const t = teachers.find(t=>t.id===id&&t.password===pw);
