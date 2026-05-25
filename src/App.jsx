@@ -364,6 +364,10 @@ function SuperCoordShell({ user, data, save, onLogout }) {
     {id:"overview", label:"Visão Geral",    icon:"dashboard"},
     {id:"schools",  label:"Escolas",        icon:"school"},
     {id:"admins",   label:"Coordenadores",  icon:"users"},
+    {id:"teachers", label:"Professores",    icon:"users"},
+    {id:"classes",  label:"Turmas",         icon:"classes"},
+    {id:"students", label:"Alunos",         icon:"student"},
+    {id:"grades",   label:"Notas",          icon:"grades"},
     {id:"levels",   label:"Níveis",         icon:"medal"},
     {id:"reports",  label:"Relatórios",     icon:"report", badge:pending},
     {id:"settings", label:"Definições",     icon:"key"},
@@ -371,14 +375,20 @@ function SuperCoordShell({ user, data, save, onLogout }) {
   return (
     <Shell user={user} nav={nav} onLogout={onLogout}>
       {({tab,detail,setDetail})=><>
-        {detail?.type==="school"  && <SchoolDetail school={detail.data} data={data} save={save} onBack={()=>setDetail(null)}/>}
-        {detail?.type==="report"  && <ReportDetail report={detail.data} data={data} onSave={save.reports} onBack={()=>setDetail(null)}/>}
-        {!detail&&tab==="overview" && <SuperOverview data={data} onSelectSchool={s=>setDetail({type:"school",data:s})} onSelectReport={r=>setDetail({type:"report",data:r})}/>}
-        {!detail&&tab==="schools"  && <SchoolManager data={data} onSave={save.schools} onSelect={s=>setDetail({type:"school",data:s})}/>}
-        {!detail&&tab==="admins"   && <AdminManager data={data} onSave={save.admins}/>}
-        {!detail&&tab==="levels"   && <LevelManager data={data} onSave={save.levels}/>}
-        {!detail&&tab==="reports"  && <ReportList data={data} onSave={save.reports} onSelect={r=>setDetail({type:"report",data:r})}/>}
-        {!detail&&tab==="settings" && <Settings apiKey={data.apiKey} onSave={save.apiKey}/>}
+        {detail?.type==="school"   && <SchoolDetail school={detail.data} data={data} save={save} onBack={()=>setDetail(null)}/>}
+        {detail?.type==="teacher"  && <TeacherCard teacher={detail.data} data={data} onBack={()=>setDetail(null)}/>}
+        {detail?.type==="student"  && <StudentCard student={detail.data} data={data} onSaveStudents={save.students} onBack={()=>setDetail(null)}/>}
+        {detail?.type==="report"   && <ReportDetail report={detail.data} data={data} onSave={save.reports} onBack={()=>setDetail(null)}/>}
+        {!detail&&tab==="overview"  && <SuperOverview data={data} onSelectSchool={s=>setDetail({type:"school",data:s})} onSelectReport={r=>setDetail({type:"report",data:r})}/>}
+        {!detail&&tab==="schools"   && <SchoolManager data={data} onSave={save.schools} onSelect={s=>setDetail({type:"school",data:s})}/>}
+        {!detail&&tab==="admins"    && <AdminManager data={data} onSave={save.admins}/>}
+        {!detail&&tab==="teachers"  && <TeacherManager data={data} schoolId={null} onSave={save.teachers} onSelect={t=>setDetail({type:"teacher",data:t})}/>}
+        {!detail&&tab==="classes"   && <ClassManager data={data} schoolId={null} onSaveClasses={save.classes}/>}
+        {!detail&&tab==="students"  && <CoordStudents data={data} onSave={save.students} onSelect={s=>setDetail({type:"student",data:s})}/>}
+        {!detail&&tab==="grades"    && <GradeManager data={data} onSave={save.students}/>}
+        {!detail&&tab==="levels"    && <LevelManager data={data} onSave={save.levels}/>}
+        {!detail&&tab==="reports"   && <ReportList data={data} onSave={save.reports} onSelect={r=>setDetail({type:"report",data:r})}/>}
+        {!detail&&tab==="settings"  && <Settings apiKey={data.apiKey} onSave={save.apiKey}/>}
       </>}
     </Shell>
   );
@@ -754,6 +764,7 @@ function TeacherFormGrid({vals, onChange, levels}) {
 
 function TeacherManager({ data, onSave, onSelect, schoolId }) {
   const {teachers,classes,students,levels}=data;
+  const filteredTeachers = schoolId ? teachers.filter(t=>t.schoolId===schoolId) : teachers;
   const [showForm,setShowForm]=useState(false);
   const emptyForm={name:"",password:"",email:"",telefone:"",morada:"",grauAcademico:"",levelId:"",anoAdesao:String(new Date().getFullYear())};
   const [form,setForm]=useState(emptyForm);
@@ -778,7 +789,7 @@ function TeacherManager({ data, onSave, onSelect, schoolId }) {
       {showForm&&<Card style={{marginBottom:"1.5rem"}}><TeacherFormGrid vals={form} onChange={setForm} levels={levels}/><div style={{display:"flex",alignItems:"center",gap:"1rem"}}><Btn icon="plus" onClick={add}>Criar</Btn><Msg {...msg}/></div></Card>}
       {!showForm&&msg.text&&<Msg {...msg}/>}
       <div style={{display:"grid",gap:"0.75rem"}}>
-        {teachers.map(t=>{
+        {filteredTeachers.map(t=>{
           const myClasses=classes.filter(c=>c.teacherId===t.id||(c.schedule||[]).some(s=>s.slotTeacherId===t.id));
           const n=students.filter(s=>myClasses.some(c=>c.id===s.classId)).length;
           const level=levels.find(l=>l.id===t.levelId);
@@ -802,7 +813,7 @@ function TeacherManager({ data, onSave, onSelect, schoolId }) {
             </Card>
           );
         })}
-        {teachers.length===0&&<div style={{textAlign:"center",padding:"3rem",color:C.slateLight}}><Icon name="users" size={40} color={C.line}/><p style={{marginTop:"1rem"}}>Nenhum professor ainda</p></div>}
+        {filteredTeachers.length===0&&<div style={{textAlign:"center",padding:"3rem",color:C.slateLight}}><Icon name="users" size={40} color={C.line}/><p style={{marginTop:"1rem"}}>Nenhum professor ainda</p></div>}
       </div>
     </div>
   );
@@ -857,6 +868,7 @@ function TeacherCard({ teacher, data, onBack }) {
 // ── Class Manager ─────────────────────────────────────────────────────────────
 function ClassManager({ data, onSaveClasses, schoolId }) {
   const {classes,teachers,students}=data;
+  const filteredClasses = schoolId ? classes.filter(c=>c.schoolId===schoolId) : classes;
   const [name,setName]=useState(""); const [year,setYear]=useState("2025/2026");
   const [type,setType]=useState("cim"); const [teacherId,setTeacherId]=useState("");
   const [msg,setMsg]=useState({text:"",type:""});
@@ -897,7 +909,7 @@ function ClassManager({ data, onSaveClasses, schoolId }) {
         <div style={{display:"flex",alignItems:"center",gap:"1rem"}}><Btn icon="plus" onClick={addClass}>Criar Turma</Btn><Msg {...msg}/></div>
       </Card>
       <div style={{display:"grid",gap:"0.75rem"}}>
-        {classes.map(cls=>{
+        {filteredClasses.map(cls=>{
           const teacher=teachers.find(t=>t.id===cls.teacherId);
           const nS=students.filter(s=>s.classId===cls.id).length;
           const subjects=cls.subjects||[]; const schedule=cls.schedule||[];
@@ -980,7 +992,7 @@ function ClassManager({ data, onSaveClasses, schoolId }) {
             </Card>
           );
         })}
-        {classes.length===0&&<div style={{textAlign:"center",padding:"3rem",color:C.slateLight}}><Icon name="classes" size={40} color={C.line}/><p style={{marginTop:"1rem"}}>Nenhuma turma ainda</p></div>}
+        {filteredClasses.length===0&&<div style={{textAlign:"center",padding:"3rem",color:C.slateLight}}><Icon name="classes" size={40} color={C.line}/><p style={{marginTop:"1rem"}}>Nenhuma turma ainda</p></div>}
       </div>
     </div>
   );
