@@ -300,7 +300,7 @@ function LoginScreen({ onLogin }) {
           <p style={{...T.body, marginBottom:"1.5rem", fontWeight:500}}>Iniciar sessão</p>
           <div style={{marginBottom:"1rem"}}>
             <div style={{...T.label, marginBottom:5}}>Identificador</div>
-            <input style={inp} value={id} placeholder="coord · prof01 · CIM0001"
+            <input style={inp} value={id} placeholder="coord · PROF0001 · CIM0001"
               onChange={e=>setId(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()}/>
           </div>
           <div style={{marginBottom:"1.5rem"}}>
@@ -318,7 +318,7 @@ function LoginScreen({ onLogin }) {
           <div style={{marginTop:"1.2rem", padding:"0.8rem", background:C.sand, borderRadius:8, border:`1px solid ${C.line}`}}>
             <div style={{...T.small, lineHeight:1.8}}>
               <b>Coordenador:</b> coord / admin123<br/>
-              <b>Professor:</b> ID atribuído / senha definida<br/>
+              <b>Professor:</b> PROF0001 / senha definida<br/>
               <b>Aluno:</b> nº CIM / primeiro nome
             </div>
           </div>
@@ -615,7 +615,8 @@ function TeacherManager({ data, onSave, onSelect }) {
 
   function add() {
     if (!form.name||!form.password) { setMsg({text:"Preenche nome e senha.", type:"error"}); return; }
-    const id = "prof"+String(teachers.length+1).padStart(2,"0");
+    const nums = teachers.map(t=>parseInt((t.id||"0").replace("PROF",""))).filter(n=>!isNaN(n));
+    const id = "PROF"+String((nums.length?Math.max(...nums):0)+1).padStart(4,"0");
     onSave([...teachers, {id, ...form, role:"teacher", createdAt:new Date().toISOString()}]);
     setForm({name:"", password:"", email:"", telefone:"", morada:"", grauAcademico:"", levelId:"", anoAdesao: new Date().getFullYear()+""});
     setShowForm(false);
@@ -650,7 +651,7 @@ function TeacherManager({ data, onSave, onSelect }) {
         <div style={{...T.label, marginBottom:5}}>Escola</div>
         <select style={{...inp}} value={vals.schoolId||""} onChange={e=>onChange({...vals,schoolId:e.target.value})}>
           <option value="">Selecionar escola</option>
-          {(data.schools||[]).map(s=><option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
+          {(schools||[]).map(s=><option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
         </select>
       </div>
       <div>
@@ -1138,7 +1139,7 @@ function getPlano(sid){return({fiqh_b1:PLANO_FIQH_ANO1,seerah_b1:PLANO_SEERAH_AN
 const MADRASSA_LEVELS = ["1ª Parte","2ª Parte","Amma","Qur'an"];
 
 function ClassManager({ data, onSaveClasses }) {
-  const {classes, teachers, students} = data;
+  const {classes, teachers, students, schools} = data;
   const [name, setName]           = useState("");
   const [year, setYear]           = useState("2025/2026");
   const [type, setType]           = useState("cim"); // "cim" | "madrassa"
@@ -1245,7 +1246,7 @@ function ClassManager({ data, onSaveClasses }) {
             <div style={{...T.label, marginBottom:5}}>Escola</div>
             <select style={{...inp}} value={schoolId} onChange={e=>setSchoolId(e.target.value)}>
               <option value="">Selecionar escola</option>
-              {(data.schools||[]).map(s=><option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
+              {(schools||[]).map(s=><option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
             </select>
           </div>
           <div>
