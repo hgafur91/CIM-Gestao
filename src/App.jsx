@@ -1,9 +1,45 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
-// ── Storage ───────────────────────────────────────────────────────────────────
+// ── Supabase ──────────────────────────────────────────────────────────────────
+const SURL = "https://bhclzbohhskhmnzcsqux.supabase.co";
+const SKEY = "sb_publishable_kqyWUbGN9sNapWyZtYTYDA_aMZuH4t_";
+const SH = { "apikey": SKEY, "Authorization": `Bearer ${SKEY}`, "Content-Type": "application/json" };
+
 const db = {
-  get: (k) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch { return null; } },
-  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  async get(table) {
+    try {
+      const r = await fetch(`${SURL}/rest/v1/${table}?select=*`, { headers: SH });
+      if (!r.ok) return [];
+      const rows = await r.json();
+      return Array.isArray(rows) ? rows.map(x => x.data) : [];
+    } catch { return []; }
+  },
+  async set(table, items) {
+    try {
+      await fetch(`${SURL}/rest/v1/${table}?id=neq.___`, { method: "DELETE", headers: SH });
+      if (!items.length) return;
+      await fetch(`${SURL}/rest/v1/${table}`, {
+        method: "POST",
+        headers: { ...SH, Prefer: "resolution=merge-duplicates" },
+        body: JSON.stringify(items.map(x => ({ id: x.id, data: x })))
+      });
+    } catch (e) { console.error(e); }
+  },
+  async getCfg(key) {
+    try {
+      const r = await fetch(`${SURL}/rest/v1/cim_config?key=eq.${key}&select=value`, { headers: SH });
+      const rows = await r.json();
+      return rows?.[0]?.value || null;
+    } catch { return null; }
+  },
+  async setCfg(key, value) {
+    try {
+      await fetch(`${SURL}/rest/v1/cim_config`, {
+        method: "POST", headers: { ...SH, Prefer: "resolution=merge-duplicates" },
+        body: JSON.stringify({ key, value })
+      });
+    } catch {}
+  }
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -163,36 +199,41 @@ export default function App() {
   const [levels,     setLevels]     = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [apiKey,     setApiKey]     = useState("");
+  const [loading,    setLoading]    = useState(true);
 
   useEffect(() => {
-    setTeachers(  db.get("cim:teachers")   || []);
-    setClasses(   db.get("cim:classes")    || []);
-    setStudents(  db.get("cim:students")   || []);
-    setReports(   db.get("cim:reports")    || []);
-    setLevels(    db.get("cim:levels")     || []);
-    setAttendance(db.get("cim:attendance") || []);
-    setApiKey(    db.get("cim:apikey")     || "");
+    (async () => {
+      try {
+        const [tc,cl,st,rp,lv,at,ak] = await Promise.all([
+          db.get("cim_teachers"), db.get("cim_classes"),
+          db.get("cim_students"), db.get("cim_reports"),
+          db.get("cim_levels"),   db.get("cim_attendance"),
+          db.getCfg("apikey"),
+        ]);
+        setTeachers(tc); setClasses(cl); setStudents(st);
+        setReports(rp);  setLevels(lv);  setAttendance(at||[]);
+        setApiKey(ak||"");
+      } catch(e) { console.error(e); }
+      setLoading(false);
+    })();
   }, []);
 
   const save = {
-    teachers:   v => { setTeachers(v);   db.set("cim:teachers",   v); },
-    classes:    v => { setClasses(v);    db.set("cim:classes",     v); },
-    students:   v => { setStudents(v);   db.set("cim:students",    v); },
-    reports:    v => { setReports(v);    db.set("cim:reports",     v); },
-    levels:     v => { setLevels(v);     db.set("cim:levels",      v); },
-    attendance: v => { setAttendance(v); db.set("cim:attendance",  v); },
-    apiKey:     v => { setApiKey(v);     db.set("cim:apikey",      v); },
+    teachers:   useCallback(async v => { setTeachers(v);   await db.set("cim_teachers",   v); }, []),
+    classes:    useCallback(async v => { setClasses(v);    await db.set("cim_classes",     v); }, []),
+    students:   useCallback(async v => { setStudents(v);   await db.set("cim_students",    v); }, []),
+    reports:    useCallback(async v => { setReports(v);    await db.set("cim_reports",     v); }, []),
+    levels:     useCallback(async v => { setLevels(v);     await db.set("cim_levels",      v); }, []),
+    attendance: useCallback(async v => { setAttendance(v); await db.set("cim_attendance",  v); }, []),
+    apiKey:     useCallback(async v => { setApiKey(v);     await db.setCfg("apikey",       v); }, []),
   };
 
-  function login(id, pw) {
-    // Coordinator
-    if (id==="coord" && pw===(db.get("cim:coordpass")||"admin123")) {
+  const login = useCallback((id, pw) => {
+    if (id==="coord" && pw==="admin123") {
       setUser({id:"coord", name:"Coordenador", role:"coord"}); return true;
     }
-    // Teacher
     const t = teachers.find(t => t.id===id && t.password===pw);
     if (t) { setUser({...t, role:"teacher"}); return true; }
-    // Student — login: CIM code / first name
     const s = students.find(s =>
       s.code===id && s.name.split(" ")[0].toLowerCase()===pw.toLowerCase()
     );
@@ -202,11 +243,22 @@ export default function App() {
       setUser({...s, role:"student", className:cls?.name, teacherName:tch?.name}); return true;
     }
     return false;
-  }
+  }, [teachers, students, classes]);
 
   function logout() { setUser(null); }
 
-  const data = { teachers, classes, students, reports, levels, attendance, apiKey };
+  const data = useMemo(() => ({ teachers, classes, students, reports, levels, attendance, apiKey }),
+    [teachers, classes, students, reports, levels, attendance, apiKey]);
+
+  if (loading && !user) return (
+    <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#0A1628 0%,#112244 100%)",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:"1.5rem",fontFamily:"'Segoe UI',system-ui,sans-serif"}}>
+      <div style={{width:72,height:72,background:"rgba(255,255,255,0.1)",borderRadius:20,display:"inline-flex",alignItems:"center",justifyContent:"center",border:"1px solid rgba(255,255,255,0.15)"}}>
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8 2 6 5 6 8c0 2 1 3 2 4H4v10h16V12h-4c1-1 2-2 2-4 0-3-2-6-6-6z"/><path d="M9 22v-4a3 3 0 0 1 6 0v4"/><path d="M2 12h2M20 12h2"/></svg>
+      </div>
+      <div style={{color:"white",fontWeight:700,fontSize:"1.5rem"}}>C.I.M</div>
+      <div style={{color:"rgba(255,255,255,0.4)",fontSize:"0.85rem"}}>A carregar dados...</div>
+    </div>
+  );
 
   if (!user)               return <LoginScreen onLogin={login}/>;
   if (user.role==="coord") return <CoordShell   user={user} data={data} save={save} onLogout={logout}/>;
@@ -218,11 +270,9 @@ export default function App() {
 // LOGIN
 // ═══════════════════════════════════════════════════════════════════════════════
 function LoginScreen({ onLogin }) {
-  const [id,setId]   = useState("");
-  const [pw,setPw]   = useState("");
-  const [err,setErr] = useState("");
-
-  function submit() { if (!onLogin(id.trim(), pw)) setErr("Credenciais inválidas."); }
+  const idRef = useRef(); const pwRef = useRef();
+  const [err, setErr] = useState("");
+  function submit() { if (!onLogin(idRef.current.value.trim(), pwRef.current.value)) setErr("Credenciais inválidas."); }
 
   return (
     <div style={{minHeight:"100vh", background:`linear-gradient(160deg,${C.navy} 0%,#112244 100%)`,
@@ -247,13 +297,13 @@ function LoginScreen({ onLogin }) {
           <p style={{...T.body, marginBottom:"1.5rem", fontWeight:500}}>Iniciar sessão</p>
           <div style={{marginBottom:"1rem"}}>
             <div style={{...T.label, marginBottom:5}}>Identificador</div>
-            <input style={inp} value={id} placeholder="coord · prof01 · CIM0001"
-              onChange={e=>setId(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()}/>
+            <input ref={idRef} style={inp} placeholder="coord · prof01 · CIM0001"
+              defaultValue="" onKeyDown={e=>e.key==="Enter"&&submit()}/>
           </div>
           <div style={{marginBottom:"1.5rem"}}>
             <div style={{...T.label, marginBottom:5}}>Palavra-passe</div>
-            <input style={inp} type="password" value={pw} placeholder="••••••••"
-              onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()}/>
+            <input ref={pwRef} style={inp} type="password" placeholder="••••••••"
+              defaultValue="" onKeyDown={e=>e.key==="Enter"&&submit()}/>
           </div>
           {err && (
             <div style={{color:C.red, fontSize:"0.84rem", marginBottom:"1rem", background:C.redPale,
