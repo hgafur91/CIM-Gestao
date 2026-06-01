@@ -2458,7 +2458,7 @@ function StudentShell({ user, data, onLogout }) {
   );
 }
 
-function StudentCard({ user, data }) {
+function MyStudentCard({ user, data }) {
   const {classes, teachers} = data;
   const cls     = classes.find(c=>c.id===user.classId);
   const teacher = teachers.find(t=>t.id===cls?.teacherId);
