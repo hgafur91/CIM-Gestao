@@ -2580,14 +2580,14 @@ function StudentShell({ user, data, onLogout }) {
   return (
     <Shell user={user} nav={nav} onLogout={onLogout}>
       {({tab}) => <>
-        {tab==="card"   && <StudentCard   user={user} data={data}/>}
+        {tab==="card"   && <MyStudentCard user={user} data={data}/>}
         {tab==="grades" && <StudentGrades user={user} data={data}/>}
       </>}
     </Shell>
   );
 }
 
-function StudentCard({ user, data }) {
+function MyStudentCard({ user, data }) {
   const {classes, teachers} = data;
   const cls     = classes.find(c=>c.id===user.classId);
   const teacher = teachers.find(t=>t.id===cls?.teacherId);
