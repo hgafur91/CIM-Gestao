@@ -2914,8 +2914,8 @@ function PlanoAnalitico({ data, filterTeacherId, filterClass }) {
         </div>
       )}
 
-      {!isCoord && selClass && <>
-        {/* Subject selector */}
+      {/* Subject selector — teacher/student only */}
+      {!isCoord && selClass && (
         <div style={{display:"flex", gap:"0.5rem", flexWrap:"wrap", marginBottom:"1.2rem"}}>
           {subjects.map(s => (
             <button key={s.id} onClick={()=>setSelSubj(s)} style={{
@@ -2928,60 +2928,59 @@ function PlanoAnalitico({ data, filterTeacherId, filterClass }) {
           ))}
           {subjects.length===0 && <p style={T.small}>Sem plano temático nesta turma.</p>}
         </div>
+      )}
 
-        {/* Trimester filter */}
-        {(isCoord || selSubj) && (
-          <div style={{display:"flex", gap:"0.5rem", marginBottom:"1.5rem"}}>
-            {[{v:0,l:"Ano Completo"},{v:1,l:"1º Trimestre"},{v:2,l:"2º Trimestre"},{v:3,l:"3º Trimestre"}].map(({v,l}) => (
-              <button key={v} onClick={()=>setSelTrim(v)} style={{
-                padding:"0.35rem 0.9rem", borderRadius:8, cursor:"pointer", fontFamily:"inherit", fontSize:"0.8rem",
-                border:`1.5px solid ${selTrim===v?(trimColors[v]||C.navy):C.line}`,
-                background:selTrim===v?(trimColors[v]||C.navy)+"18":C.white,
-                color:selTrim===v?(trimColors[v]||C.navy):C.slate, fontWeight:selTrim===v?700:400,
-              }}>{l}</button>
-            ))}
-          </div>
-        )}
+      {/* Trimester filter — shown when plan is ready */}
+      {(isCoord || selSubj) && plano.length>0 && (
+        <div style={{display:"flex", gap:"0.5rem", marginBottom:"1.5rem", flexWrap:"wrap"}}>
+          {[{v:0,l:"Ano Completo"},{v:1,l:"1º Trimestre"},{v:2,l:"2º Trimestre"},{v:3,l:"3º Trimestre"}].map(({v,l}) => (
+            <button key={v} onClick={()=>setSelTrim(v)} style={{
+              padding:"0.35rem 0.9rem", borderRadius:8, cursor:"pointer", fontFamily:"inherit", fontSize:"0.8rem",
+              border:`1.5px solid ${selTrim===v?(trimColors[v]||C.navy):C.line}`,
+              background:selTrim===v?(trimColors[v]||C.navy)+"18":C.white,
+              color:selTrim===v?(trimColors[v]||C.navy):C.slate, fontWeight:selTrim===v?700:400,
+            }}>{l}</button>
+          ))}
+        </div>
+      )}
 
-        {/* Plan table */}
-        {(isCoord || selSubj) && (
-          <Card style={{padding:0, overflow:"hidden"}} id="plano-table">
-            <table style={{width:"100%", borderCollapse:"collapse"}}>
-              <thead>
-                <tr style={{background:C.navy}}>
-                  <th style={{...thS, color:C.white, background:C.navy, width:60, textAlign:"center"}}>Sem.</th>
-                  <th style={{...thS, color:C.white, background:C.navy, width:60}}>Trim.</th>
-                  <th style={{...thS, color:C.white, background:C.navy, textAlign:"left", paddingLeft:12}}>Tema</th>
-                  <th style={{...thS, color:C.white, background:C.navy, textAlign:"left", paddingLeft:12}}>Conteúdo / Lição</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((p, i) => {
-                  const isEval = p.tipo;
-                  const evalColor = isEval ? typeColors[p.tipo] : null;
-                  return (
-                    <tr key={p.semana} style={{
-                      background: isEval ? evalColor+"11" : i%2===0?C.white:C.blueFaint,
-                      borderBottom:`1px solid ${C.line}`,
-                    }}>
-                      <td style={{padding:"0.5rem", textAlign:"center", fontFamily:"'Courier New',monospace", fontWeight:700, fontSize:"0.85rem", color:isEval?evalColor:C.navy}}>{p.semana}</td>
-                      <td style={{padding:"0.5rem", textAlign:"center"}}>
-                        <span style={{background:trimColors[p.trim]+"22", color:trimColors[p.trim], borderRadius:20, padding:"2px 8px", fontSize:"0.7rem", fontWeight:700}}>T{p.trim}</span>
-                      </td>
-                      <td style={{padding:"0.6rem 1rem", fontWeight:isEval?700:600, color:isEval?evalColor:C.navy, fontSize:"0.875rem"}}>
-                        {isEval && <span style={{marginRight:6}}>📝</span>}
-                        {p.tema}
-                      </td>
-                      <td style={{padding:"0.6rem 1rem", color:isEval?evalColor:C.slate, fontSize:"0.85rem"}}>{p.licao}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </Card>
-        )}
-      </>}
-      {!isCoord && <></>}
+      {/* Plan table */}
+      {(isCoord || selSubj) && plano.length>0 && (
+        <Card style={{padding:0, overflow:"hidden"}} id="plano-table">
+          <table style={{width:"100%", borderCollapse:"collapse"}}>
+            <thead>
+              <tr style={{background:C.navy}}>
+                <th style={{...thS, color:C.white, background:C.navy, width:60, textAlign:"center"}}>Sem.</th>
+                <th style={{...thS, color:C.white, background:C.navy, width:60}}>Trim.</th>
+                <th style={{...thS, color:C.white, background:C.navy, textAlign:"left", paddingLeft:12}}>Tema</th>
+                <th style={{...thS, color:C.white, background:C.navy, textAlign:"left", paddingLeft:12}}>Conteúdo / Lição</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((p, i) => {
+                const isEval = p.tipo;
+                const evalColor = isEval ? typeColors[p.tipo] : null;
+                return (
+                  <tr key={p.semana} style={{
+                    background: isEval ? evalColor+"11" : i%2===0?C.white:C.blueFaint,
+                    borderBottom:`1px solid ${C.line}`,
+                  }}>
+                    <td style={{padding:"0.5rem", textAlign:"center", fontFamily:"'Courier New',monospace", fontWeight:700, fontSize:"0.85rem", color:isEval?evalColor:C.navy}}>{p.semana}</td>
+                    <td style={{padding:"0.5rem", textAlign:"center"}}>
+                      <span style={{background:trimColors[p.trim]+"22", color:trimColors[p.trim], borderRadius:20, padding:"2px 8px", fontSize:"0.7rem", fontWeight:700}}>T{p.trim}</span>
+                    </td>
+                    <td style={{padding:"0.6rem 1rem", fontWeight:isEval?700:600, color:isEval?evalColor:C.navy, fontSize:"0.875rem"}}>
+                      {isEval && <span style={{marginRight:6}}>📝</span>}
+                      {p.tema}
+                    </td>
+                    <td style={{padding:"0.6rem 1rem", color:isEval?evalColor:C.slate, fontSize:"0.85rem"}}>{p.licao}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </Card>
+      )}
     </div>
   );
 }
