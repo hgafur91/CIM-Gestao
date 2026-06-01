@@ -192,6 +192,7 @@ const thS = {
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function App() {
   const [user,       setUser]       = useState(null);
+  const [schools,    setSchools]    = useState([]);
   const [teachers,   setTeachers]   = useState([]);
   const [classes,    setClasses]    = useState([]);
   const [students,   setStudents]   = useState([]);
@@ -204,21 +205,23 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
-        const [tc,cl,st,rp,lv,at,ak] = await Promise.all([
+        const [sc,tc,cl,st,rp,lv,at,ak] = await Promise.all([
+          db.get("cim_schools"),
           db.get("cim_teachers"), db.get("cim_classes"),
           db.get("cim_students"), db.get("cim_reports"),
           db.get("cim_levels"),   db.get("cim_attendance"),
           db.getCfg("apikey"),
         ]);
-        setTeachers(tc); setClasses(cl); setStudents(st);
-        setReports(rp);  setLevels(lv);  setAttendance(at||[]);
-        setApiKey(ak||"");
+        setSchools(sc||[]); setTeachers(tc||[]); setClasses(cl||[]);
+        setStudents(st||[]); setReports(rp||[]); setLevels(lv||[]);
+        setAttendance(at||[]); setApiKey(ak||"");
       } catch(e) { console.error(e); }
       setLoading(false);
     })();
   }, []);
 
   const save = {
+    schools:    useCallback(async v => { setSchools(v);    await db.set("cim_schools",    v); }, []),
     teachers:   useCallback(async v => { setTeachers(v);   await db.set("cim_teachers",   v); }, []),
     classes:    useCallback(async v => { setClasses(v);    await db.set("cim_classes",     v); }, []),
     students:   useCallback(async v => { setStudents(v);   await db.set("cim_students",    v); }, []),
@@ -247,14 +250,12 @@ export default function App() {
 
   function logout() { setUser(null); }
 
-  const data = useMemo(() => ({ teachers, classes, students, reports, levels, attendance, apiKey }),
-    [teachers, classes, students, reports, levels, attendance, apiKey]);
+  const data = useMemo(() => ({ schools, teachers, classes, students, reports, levels, attendance, apiKey }),
+    [schools, teachers, classes, students, reports, levels, attendance, apiKey]);
 
   if (loading && !user) return (
     <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#0A1628 0%,#112244 100%)",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:"1.5rem",fontFamily:"'Segoe UI',system-ui,sans-serif"}}>
-      <div style={{width:72,height:72,background:"rgba(255,255,255,0.1)",borderRadius:20,display:"inline-flex",alignItems:"center",justifyContent:"center",border:"1px solid rgba(255,255,255,0.15)"}}>
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8 2 6 5 6 8c0 2 1 3 2 4H4v10h16V12h-4c1-1 2-2 2-4 0-3-2-6-6-6z"/><path d="M9 22v-4a3 3 0 0 1 6 0v4"/><path d="M2 12h2M20 12h2"/></svg>
-      </div>
+      <div style={{width:72,height:72,background:"rgba(255,255,255,0.1)",borderRadius:20,display:"inline-flex",alignItems:"center",justifyContent:"center",border:"1px solid rgba(255,255,255,0.15)"}}><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8 2 6 5 6 8c0 2 1 3 2 4H4v10h16V12h-4c1-1 2-2 2-4 0-3-2-6-6-6z"/><path d="M9 22v-4a3 3 0 0 1 6 0v4"/><path d="M2 12h2M20 12h2"/></svg></div>
       <div style={{color:"white",fontWeight:700,fontSize:"1.5rem"}}>C.I.M</div>
       <div style={{color:"rgba(255,255,255,0.4)",fontSize:"0.85rem"}}>A carregar dados...</div>
     </div>
@@ -270,9 +271,11 @@ export default function App() {
 // LOGIN
 // ═══════════════════════════════════════════════════════════════════════════════
 function LoginScreen({ onLogin }) {
-  const idRef = useRef(); const pwRef = useRef();
-  const [err, setErr] = useState("");
-  function submit() { if (!onLogin(idRef.current.value.trim(), pwRef.current.value)) setErr("Credenciais inválidas."); }
+  const [id,setId]   = useState("");
+  const [pw,setPw]   = useState("");
+  const [err,setErr] = useState("");
+
+  function submit() { if (!onLogin(id.trim(), pw)) setErr("Credenciais inválidas."); }
 
   return (
     <div style={{minHeight:"100vh", background:`linear-gradient(160deg,${C.navy} 0%,#112244 100%)`,
@@ -297,13 +300,13 @@ function LoginScreen({ onLogin }) {
           <p style={{...T.body, marginBottom:"1.5rem", fontWeight:500}}>Iniciar sessão</p>
           <div style={{marginBottom:"1rem"}}>
             <div style={{...T.label, marginBottom:5}}>Identificador</div>
-            <input ref={idRef} style={inp} placeholder="coord · prof01 · CIM0001"
-              defaultValue="" onKeyDown={e=>e.key==="Enter"&&submit()}/>
+            <input style={inp} value={id} placeholder="coord · prof01 · CIM0001"
+              onChange={e=>setId(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()}/>
           </div>
           <div style={{marginBottom:"1.5rem"}}>
             <div style={{...T.label, marginBottom:5}}>Palavra-passe</div>
-            <input ref={pwRef} style={inp} type="password" placeholder="••••••••"
-              defaultValue="" onKeyDown={e=>e.key==="Enter"&&submit()}/>
+            <input style={inp} type="password" value={pw} placeholder="••••••••"
+              onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()}/>
           </div>
           {err && (
             <div style={{color:C.red, fontSize:"0.84rem", marginBottom:"1rem", background:C.redPale,
@@ -393,8 +396,9 @@ function CoordShell({ user, data, save, onLogout }) {
   const pending = data.reports.filter(r=>!r.approved).length;
   const nav = [
     { id:"overview",  label:"Visão Geral",   icon:"dashboard" },
+    { id:"schools",   label:"Escolas",        icon:"school" },
     { id:"teachers",  label:"Professores",   icon:"users" },
-    { id:"levels",    label:"Níveis",        icon:"grades" },
+    { id:"levels",    label:"Níveis",        icon:"medal" },
     { id:"classes",   label:"Turmas",        icon:"classes" },
     { id:"students",  label:"Alunos",        icon:"student" },
     { id:"grades",    label:"Notas",         icon:"book" },
@@ -408,6 +412,7 @@ function CoordShell({ user, data, save, onLogout }) {
         {detail?.type==="student" && <StudentCard student={detail.data} data={data} onSave={save.students} onBack={()=>setDetail(null)}/>}
         {detail?.type==="report"  && <ReportDetail report={detail.data} data={data} onSave={save.reports}  onBack={()=>setDetail(null)}/>}
         {!detail && tab==="overview" && <CoordOverview data={data} onSelectReport={r=>setDetail({type:"report",data:r})}/>}
+        {!detail && tab==="schools"  && <SchoolManager data={data} onSave={save.schools}/>}
         {!detail && tab==="teachers" && <TeacherManager data={data} onSave={save.teachers} onSelect={t=>setDetail({type:"teacher",data:t})}/>}
         {!detail && tab==="levels"   && <LevelManager data={data} onSave={save.levels}/>}
         {!detail && tab==="classes"  && <ClassManager  data={data} onSaveClasses={save.classes}/>}
@@ -424,11 +429,13 @@ function CoordShell({ user, data, save, onLogout }) {
 function CoordOverview({ data, onSelectReport }) {
   const {teachers, classes, students, reports} = data;
   const pending = reports.filter(r=>!r.approved);
+  const {schools} = data;
   const stats = [
-    {label:"Professores", value:teachers.length, icon:"users",   color:C.blue},
-    {label:"Turmas",      value:classes.length,  icon:"classes", color:C.blueMid},
-    {label:"Alunos",      value:students.length, icon:"student", color:C.green},
-    {label:"Pendentes",   value:pending.length,  icon:"clock",   color:C.amber},
+    {label:"Escolas",     value:schools.length,   icon:"school",   color:"#0E7490"},
+    {label:"Professores", value:teachers.length,  icon:"users",    color:C.blue},
+    {label:"Turmas",      value:classes.length,   icon:"classes",  color:C.blueMid},
+    {label:"Alunos",      value:students.length,  icon:"student",  color:C.green},
+    {label:"Pendentes",   value:pending.length,   icon:"report",   color:C.amber},
   ];
   return (
     <div>
@@ -475,6 +482,60 @@ function CoordOverview({ data, onSelectReport }) {
           })}
         </div>
       </>}
+    </div>
+  );
+}
+
+
+// ── School Manager ────────────────────────────────────────────────────────────
+function SchoolManager({ data, onSave }) {
+  const { schools, teachers, students } = data;
+  const [name, setName]         = useState("");
+  const [location, setLocation] = useState("");
+  const [msg, setMsg]           = useState({text:"", type:""});
+
+  function nextCode(items, prefix) {
+    const nums = items.map(x => parseInt((x.code||"0").replace(prefix,""))).filter(n => !isNaN(n));
+    return `${prefix}${String((nums.length ? Math.max(...nums) : 0) + 1).padStart(4, "0")}`;
+  }
+
+  function add() {
+    if (!name.trim()) { setMsg({text:"Escreve o nome.", type:"error"}); return; }
+    const code = nextCode(schools, "ESC");
+    onSave([...schools, { id:`sch_${Date.now()}`, code, name:name.trim(), location:location.trim(), createdAt:new Date().toISOString() }]);
+    setName(""); setLocation(""); setMsg({text:`Escola "${name}" criada — ${code}`, type:"success"});
+  }
+
+  return (
+    <div>
+      <div style={{marginBottom:"2rem"}}><h1 style={T.h1}>Escolas</h1></div>
+      <Card style={{marginBottom:"1.5rem"}}>
+        <h2 style={{...T.h2, fontSize:"1rem", marginBottom:"1rem"}}>Nova Escola</h2>
+        <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1rem", marginBottom:"0.75rem"}}>
+          <div><div style={{...T.label, marginBottom:5}}>Nome da Escola</div><input style={inp} value={name} placeholder="Ex: Madrassa Al-Nour" onChange={e=>setName(e.target.value)}/></div>
+          <div><div style={{...T.label, marginBottom:5}}>Localização</div><input style={inp} value={location} placeholder="Ex: Maputo" onChange={e=>setLocation(e.target.value)}/></div>
+        </div>
+        <div style={{display:"flex", alignItems:"center", gap:"1rem"}}><Btn icon="plus" onClick={add}>Criar Escola</Btn><Msg {...msg}/></div>
+      </Card>
+      <div style={{display:"grid", gap:"0.75rem"}}>
+        {schools.map(sc => {
+          const nT = teachers.filter(t=>t.schoolId===sc.id).length;
+          const nS = students.filter(s=>s.schoolId===sc.id).length;
+          return (
+            <Card key={sc.id} style={{padding:"1rem 1.2rem", display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+              <div style={{display:"flex", alignItems:"center", gap:14}}>
+                <div style={{width:44,height:44,background:"#ECFEFF",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center"}}><Icon name="school" size={22} color="#0E7490"/></div>
+                <div>
+                  <div style={{display:"flex", gap:8, alignItems:"center"}}><span style={T.h3}>{sc.name}</span><span style={T.mono}>{sc.code}</span></div>
+                  <div style={{display:"flex", gap:8, marginTop:3}}>{sc.location&&<span style={T.small}>{sc.location}</span>}<span style={T.small}>· {nT} prof. · {nS} alunos</span></div>
+                </div>
+              </div>
+              <Btn variant="danger" size="sm" icon="trash" onClick={()=>{if(window.confirm("Remover escola?"))onSave(schools.filter(x=>x.id!==sc.id));}}>Remover</Btn>
+            </Card>
+          );
+        })}
+        {schools.length===0&&<div style={{textAlign:"center",padding:"3rem",color:C.slateLight}}><Icon name="school" size={40} color={C.line}/><p style={{marginTop:"1rem"}}>Nenhuma escola ainda — cria a primeira acima</p></div>}
+      </div>
     </div>
   );
 }
@@ -585,6 +646,13 @@ function TeacherManager({ data, onSave, onSelect }) {
             onChange={e=>onChange({...vals,[field]:e.target.value})}/>
         </div>
       ))}
+      <div>
+        <div style={{...T.label, marginBottom:5}}>Escola</div>
+        <select style={{...inp}} value={vals.schoolId||""} onChange={e=>onChange({...vals,schoolId:e.target.value})}>
+          <option value="">Selecionar escola</option>
+          {(data.schools||[]).map(s=><option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
+        </select>
+      </div>
       <div>
         <div style={{...T.label, marginBottom:5}}>Nível</div>
         <select style={{...inp}} value={vals.levelId||""} onChange={e=>onChange({...vals,levelId:e.target.value})}>
@@ -1057,149 +1125,26 @@ function StudentCard({ student, data, onSave, onBack }) {
 
 // ── Class Manager ─────────────────────────────────────────────────────────────
 const DAYS  = ["Segunda","Terça","Quarta","Quinta","Sexta"];
-const MADRASSA_LEVELS = ["1ª Parte","2ª Parte","Amma","Qur'an"];
 const CIM_LEVELS = [
   "Básico 1º Ano","Básico 2º Ano","Básico 3º Ano",
   "Médio 1º Ano","Médio 2º Ano","Médio 3º Ano",
   "Avançado 1º Ano","Avançado 2º Ano","Avançado 3º Ano"
 ];
-
-// Tipo de sessão de aula
-const TIPOS_AULA = [
-  {id:"aula",  label:"Aula Normal"},
-  {id:"as1",   label:"1ª Avaliação Semestral (A.S.)"},
-  {id:"as2",   label:"2ª Avaliação Semestral (A.S.)"},
-  {id:"at",    label:"Avaliação Trimestral (A.T.)"},
-  {id:"ea",    label:"Exame Anual (E.A.)"},
-];
-
-// ── Planos Temáticos — Nível Básico 1º Ano ───────────────────────────────────
-const PLANO_FIQH_ANO1 = [
-  // 1º Trimestre
-  {semana:1,  trim:1, tema:"Introdução ao Fiq'h",                   licao:"Definição e importância do Fiq'h; as 5 regras (Al-Ahkaam Al-Khamsa)"},
-  {semana:2,  trim:1, tema:"As Escolas de Fiq'h (Maz'habs)",         licao:"Os 4 Maz'habs: Maliki, Hanafi, Shafe'e e Hanbali"},
-  {semana:3,  trim:1, tema:"Introdução ao Tahaara",                  licao:"O que é Tahaara; tipos: Haqiqiya, Ma'nawi e Baatini"},
-  {semana:4,  trim:1, tema:"1ª A.S.",                                licao:"Avaliação Semestral — Semanas 1 a 3", tipo:"as1"},
-  {semana:5,  trim:1, tema:"Capítulo das Águas",                     licao:"Tipos de água no Islam; conceito de Qullatayn"},
-  {semana:6,  trim:1, tema:"Capítulo dos Recipientes",               licao:"Recipientes permitidos e proibidos; purificar recipiente lambido por cão"},
-  {semana:7,  trim:1, tema:"Capítulo do Siwaak",                     licao:"Definição e importância do Siwaak; momentos recomendados"},
-  {semana:8,  trim:1, tema:"2ª A.S.",                                licao:"Avaliação Semestral — Semanas 5 a 7", tipo:"as2"},
-  {semana:9,  trim:1, tema:"Wuzu – Parte 1",                         licao:"As 6 obrigações (Fardh) do Wuzu; evidências corânicas"},
-  {semana:10, trim:1, tema:"A.T.1",                                  licao:"Avaliação Trimestral — Revisão geral do 1º Trimestre", tipo:"at"},
-  // 2º Trimestre
-  {semana:11, trim:2, tema:"Wuzu – Parte 2: Sunnats",               licao:"Os 10 Sunnats do Wuzu; benefícios"},
-  {semana:12, trim:2, tema:"Anuladores do Wuzu (Nawaqidh)",          licao:"Os 4 Nawaqidh do Wuzu"},
-  {semana:13, trim:2, tema:"Etiquetas da Casa de Banho – Parte 1",  licao:"Etiquetas islâmicas; Du'as de entrada e saída"},
-  {semana:14, trim:2, tema:"1ª A.S.",                                licao:"Avaliação Semestral — Semanas 11 a 13", tipo:"as1"},
-  {semana:15, trim:2, tema:"Etiquetas da Casa de Banho – Parte 2",  licao:"Istinjaa: definição e forma correcta"},
-  {semana:16, trim:2, tema:"Capítulo do Banho (Ghusl) – Parte 1",   licao:"As 3 obrigações do Ghusl; Ghusl completo"},
-  {semana:17, trim:2, tema:"Capítulo do Banho (Ghusl) – Parte 2",   licao:"Ghusl Sunnat; dias recomendados"},
-  {semana:18, trim:2, tema:"2ª A.S.",                                licao:"Avaliação Semestral — Semanas 15 a 17", tipo:"as2"},
-  {semana:19, trim:2, tema:"Mas'h sobre as Meias (Khuffayn)",        licao:"Condições para o Mas'h; tipos de meias; duração"},
-  {semana:20, trim:2, tema:"A.T.2",                                  licao:"Avaliação Trimestral — Revisão geral do 2º Trimestre", tipo:"at"},
-  // 3º Trimestre
-  {semana:21, trim:3, tema:"Tayamum – Parte 1",                      licao:"Definição; razões válidas para o Tayamum"},
-  {semana:22, trim:3, tema:"Tayamum – Parte 2",                      licao:"As 3 condições; como se faz; anuladores"},
-  {semana:23, trim:3, tema:"Tayamum – Parte 3 (casos práticos)",     licao:"O que fazer ao encontrar água após o Tayamum"},
-  {semana:24, trim:3, tema:"1ª A.S.",                                licao:"Avaliação Semestral — Tayamum completo", tipo:"as1"},
-  {semana:25, trim:3, tema:"Impurezas (Najasaat) – Parte 1",         licao:"O que é Najasa; substâncias Najas no Islam"},
-  {semana:26, trim:3, tema:"Impurezas (Najasaat) – Parte 2",         licao:"Khamr, Khinzir e Mayta; posições dos Maz'habs sobre o cão"},
-  {semana:27, trim:3, tema:"Impurezas – Como lavar e Purificar",     licao:"Como purificar cada tipo de Najasa; excepções"},
-  {semana:28, trim:3, tema:"2ª A.S.",                                licao:"Avaliação Semestral — Najasaat", tipo:"as2"},
-  {semana:29, trim:3, tema:"Revisão Geral do Ano",                   licao:"Todos os capítulos: Tahaara, Água, Wuzu, Ghusl, Tayamum, Najasa"},
-  {semana:30, trim:3, tema:"A.T.3 + Exame Anual",                   licao:"Avaliação final do 3º Trimestre e Exame Anual", tipo:"ea"},
-];
-
-const PLANO_SEERAH_ANO1 = [
-  // 1º Trimestre
-  {semana:1,  trim:1, tema:"Introdução ao Seerah",                   licao:"O que é Seerah; criação de Adam A.S.; Ibliss"},
-  {semana:2,  trim:1, tema:"Nabis, Rassuls e Linhagem",              licao:"Diferença entre Nabi e Rassul; linhagem até Muhammad ﷺ"},
-  {semana:3,  trim:1, tema:"A Península Arábica",                    licao:"Localização geográfica; os 3 povos; os grandes impérios vizinhos"},
-  {semana:4,  trim:1, tema:"1ª A.S.",                                licao:"Avaliação Semestral — Semanas 1 a 3", tipo:"as1"},
-  {semana:5,  trim:1, tema:"Religiões antes do Islam",               licao:"Idolatria, Cristianismo e Judaísmo; como a idolatria entrou em Makkah"},
-  {semana:6,  trim:1, tema:"Aamul Fil — O Ano do Elefante",          licao:"Abraha e o seu exército; os pássaros Ababil; protecção do Ka'ba"},
-  {semana:7,  trim:1, tema:"Nascimento e Infância do Profeta ﷺ",    licao:"Os pais; nascimento em 571 d.C.; Haleema As-Sa'diya"},
-  {semana:8,  trim:1, tema:"2ª A.S.",                                licao:"Avaliação Semestral — Semanas 5 a 7", tipo:"as2"},
-  {semana:9,  trim:1, tema:"Shaqq Al-Sadr e Orfandade",             licao:"Rompimento do Peito; morte da mãe Aminah; tutela de Abu Taalib"},
-  {semana:10, trim:1, tema:"A.T.1",                                  licao:"Avaliação Trimestral — Revisão geral do 1º Trimestre", tipo:"at"},
-  // 2º Trimestre
-  {semana:11, trim:2, tema:"Sinais da Profecia – Parte 1",           licao:"Viagem aos 12 anos para Shaam; encontro com Buhayra"},
-  {semana:12, trim:2, tema:"Sinais da Profecia – Parte 2",           licao:"Profissões do Profeta ﷺ; qualidades de Al-Amin; Khadija"},
-  {semana:13, trim:2, tema:"Casamento com Khadija e Ka'ba",          licao:"Como Khadija propôs; filhos do Nabi ﷺ; solução do Al-Hajar Al-Aswad"},
-  {semana:14, trim:2, tema:"1ª A.S.",                                licao:"Avaliação Semestral — Semanas 11 a 13", tipo:"as1"},
-  {semana:15, trim:2, tema:"O Início da Revelação – Parte 1",        licao:"Ghar Hiraa; 1ª revelação de Jibra'il; Suratul Alaq"},
-  {semana:16, trim:2, tema:"O Início da Revelação – Parte 2",        licao:"Waraka bin Naufal; pausa da revelação; Suratul Mudathir"},
-  {semana:17, trim:2, tema:"Da'wah Secreto — Primeiros Muçulmanos", licao:"Khadija, Abu Bakr, Zayd e Ali R.A.; o Salah no início do Islam"},
-  {semana:18, trim:2, tema:"2ª A.S.",                                licao:"Avaliação Semestral — Semanas 15 a 17", tipo:"as2"},
-  {semana:19, trim:2, tema:"Da'wah Aberto – Jantares e Jabal Safa",  licao:"Os Ashara Mubashireena; discurso no Jabal Safa; Abu Lahab"},
-  {semana:20, trim:2, tema:"A.T.2",                                  licao:"Avaliação Trimestral — Revisão geral do 2º Trimestre", tipo:"at"},
-  // 3º Trimestre
-  {semana:21, trim:3, tema:"Estratégias dos Mushrikeen – Parte 1",   licao:"Gozo e difamação; Suratul Kafirun como resposta"},
-  {semana:22, trim:3, tema:"Estratégias dos Mushrikeen – Parte 2",   licao:"Duas conversas com Abu Taalib; determinação do Profeta ﷺ"},
-  {semana:23, trim:3, tema:"Ataques contra o Profeta ﷺ",            licao:"Abu Lahab; Abu Jahl: tripas de vaca, tentativa de agressão"},
-  {semana:24, trim:3, tema:"1ª A.S.",                                licao:"Avaliação Semestral — Semanas 21 a 23", tipo:"as1"},
-  {semana:25, trim:3, tema:"Perseguição dos Sahabas e Casa de Arqam", licao:"Bilaal R.A.; Yasir e Sumaya; Casa de Arqam — 1ª madrassa"},
-  {semana:26, trim:3, tema:"O Hijra para Habasha",                   licao:"1º e 2º Hijra; Sijda dos Mushrikeen"},
-  {semana:27, trim:3, tema:"Já'far diante do Rei Najash",            licao:"Discurso de Já'far; decisão de Najash; Islam do Rei em segredo"},
-  {semana:28, trim:3, tema:"2ª A.S.",                                licao:"Avaliação Semestral — Semanas 25 a 27", tipo:"as2"},
-  {semana:29, trim:3, tema:"O Islam de Hamza e Umar R.A.",           licao:"Islam de Hamza: incidente com Abu Jahl; Islam de Umar R.A. completo"},
-  {semana:30, trim:3, tema:"A.T.3 + Exame Anual",                   licao:"Avaliação final e Exame Anual — toda a Seerah do 1º Ano", tipo:"ea"},
-];
-
-const PLANO_AQIDAH_ANO1 = [
-  // 1º Trimestre
-  {semana:1,  trim:1, tema:"Introdução ao Aquida",                   licao:"O que é Aquida; fontes; Ahlussunnah Wa Al-Jama'a"},
-  {semana:2,  trim:1, tema:"Conceitos Básicos do Iman",              licao:"Definição de Iman; 3 divisões; o Iman aumenta e diminui"},
-  {semana:3,  trim:1, tema:"A Importância do Iman e os 3 Princípios", licao:"O coração no Iman; 3 princípios; perguntas do Qabr"},
-  {semana:4,  trim:1, tema:"1ª A.S.",                                licao:"Avaliação Semestral — Semanas 1 a 3", tipo:"as1"},
-  {semana:5,  trim:1, tema:"Tauhid — Definição e Divisões",          licao:"O que é Tauhid; 3 divisões; Surat Al-Ikhlass"},
-  {semana:6,  trim:1, tema:"Tauhid Al-Rububiya — Al-Khaliq",         licao:"Allah como criador; exemplos da criação; evidências corânicas"},
-  {semana:7,  trim:1, tema:"Tauhid Al-Rububiya — Al-Razzaq e Al-Mudabbir", licao:"Allah como único sustentador e controlador de tudo"},
-  {semana:8,  trim:1, tema:"2ª A.S.",                                licao:"Avaliação Semestral — Semanas 5 a 7", tipo:"as2"},
-  {semana:9,  trim:1, tema:"Tauhid Al-Uluhiya — Definição e Fundamentos", licao:"Definição de Uluhiya; o conceito de Taghut"},
-  {semana:10, trim:1, tema:"A.T.1",                                  licao:"Avaliação Trimestral — Revisão geral do 1º Trimestre", tipo:"at"},
-  // 2º Trimestre
-  {semana:11, trim:2, tema:"Ibrahim A.S. e o Tauhid Al-Uluhiya",    licao:"Ibrahim A.S. e os astros; destruição dos ídolos"},
-  {semana:12, trim:2, tema:"O que é Ibadah — Tipos Externos",        licao:"Definição; condições: Al-Ikhlass e Al-Mutaba'a; tipos externos"},
-  {semana:13, trim:2, tema:"Ibadah Interno e Conexão Rububiya-Uluhiya", licao:"Al-Isti'aana, Mahabba, Raja'a, Taqwaa, Tawakkul, Sabr, Shukr"},
-  {semana:14, trim:2, tema:"1ª A.S.",                                licao:"Avaliação Semestral — Semanas 11 a 13", tipo:"as1"},
-  {semana:15, trim:2, tema:"Asmaa wa Sifaat — Princípios 1 e 2",    licao:"Al-Ithbaat (afirmação) e Al-Nafy (negação)"},
-  {semana:16, trim:2, tema:"Asmaa wa Sifaat — Princípios 3, 4 e 5", licao:"Adam Takyif, Adam Tashbih, Al-Tawaquf; resposta de Imam Malik"},
-  {semana:17, trim:2, tema:"Crença no Profeta ﷺ — Parte 1",         licao:"As 6 crenças obrigatórias: primeiras 4"},
-  {semana:18, trim:2, tema:"2ª A.S.",                                licao:"Avaliação Semestral — Semanas 15 a 17", tipo:"as2"},
-  {semana:19, trim:2, tema:"Crença no Profeta ﷺ — Parte 2 e 5 Direitos", licao:"5ª e 6ª crenças; os 5 direitos do Profeta ﷺ sobre nós"},
-  {semana:20, trim:2, tema:"A.T.2",                                  licao:"Avaliação Trimestral — Revisão geral do 2º Trimestre", tipo:"at"},
-  // 3º Trimestre
-  {semana:21, trim:3, tema:"Al-Shafa'tul Kubraa — Parte 1",         licao:"O dia de Qiyamah; os 5 Profetas e 'Nafsi Nafsi'"},
-  {semana:22, trim:3, tema:"Al-Shafa'tul Kubraa — O Profeta ﷺ Intercede", licao:"As 4 intercessões perante Allah; saída dos crentes do Jahannam"},
-  {semana:23, trim:3, tema:"O Terceiro Princípio: O Islam",          licao:"Definição de Islam; 3 pontos principais; Suratul Imraan"},
-  {semana:24, trim:3, tema:"1ª A.S.",                                licao:"Avaliação Semestral — Semanas 21 a 23", tipo:"as1"},
-  {semana:25, trim:3, tema:"Os Pilares do Islam — Shahada e Salah",  licao:"5 pilares; Shahadatayn; Salah — 5 Salats obrigatórios"},
-  {semana:26, trim:3, tema:"Os Pilares do Islam — Zakat, Jejum e Hajj", licao:"Zakat: Nisaab, 2.5%; Jejum; Hajj: condições e rituais"},
-  {semana:27, trim:3, tema:"Condições do Shahada — Ilm e Yaqin",    licao:"A chave do Jannah; 1ª: Ilm; 2ª: Yaqin; opostos"},
-  {semana:28, trim:3, tema:"2ª A.S.",                                licao:"Avaliação Semestral — Semanas 25 a 27", tipo:"as2"},
-  {semana:29, trim:3, tema:"Condições do Shahada — Qabul a Mahabba", licao:"3ª a 7ª condições com os seus opostos e evidências"},
-  {semana:30, trim:3, tema:"A.T.3 + Exame Anual",                   licao:"Avaliação final e Exame Anual — todo o Amantu Billahi", tipo:"ea"},
-];
-
-// Mapa de disciplinas fixas por nível
-const DISCIPLINAS_BASICO_ANO1 = [
-  {id:"fiqh_b1",   name:"Fiqh",   plano:PLANO_FIQH_ANO1},
-  {id:"seerah_b1", name:"Seerah", plano:PLANO_SEERAH_ANO1},
-  {id:"aqidah_b1", name:"Aqidah", plano:PLANO_AQIDAH_ANO1},
-];
-
-function getPlano(disciplinaId) {
-  const d = DISCIPLINAS_BASICO_ANO1.find(x=>x.id===disciplinaId);
-  return d?.plano||[];
-}
+const PLANO_FIQH_ANO1=[{semana:1,trim:1,tema:"Introdução ao Fiq'h",licao:"Definição e importância do Fiq'h; as 5 regras"},{semana:2,trim:1,tema:"As Escolas de Fiq'h (Maz'habs)",licao:"Os 4 Maz'habs: Maliki, Hanafi, Shafe'e e Hanbali"},{semana:3,trim:1,tema:"Introdução ao Tahaara",licao:"O que é Tahaara; tipos: Haqiqiya, Ma'nawi e Baatini"},{semana:4,trim:1,tema:"1ª A.S.",licao:"Avaliação Semestral — Semanas 1 a 3",tipo:"as1"},{semana:5,trim:1,tema:"Capítulo das Águas",licao:"Tipos de água no Islam; conceito de Qullatayn"},{semana:6,trim:1,tema:"Capítulo dos Recipientes",licao:"Recipientes permitidos e proibidos"},{semana:7,trim:1,tema:"Capítulo do Siwaak",licao:"Definição e importância do Siwaak"},{semana:8,trim:1,tema:"2ª A.S.",licao:"Avaliação Semestral — Semanas 5 a 7",tipo:"as2"},{semana:9,trim:1,tema:"Wuzu – Parte 1",licao:"As 6 obrigações (Fardh) do Wuzu"},{semana:10,trim:1,tema:"A.T.1",licao:"Avaliação Trimestral — 1º Trimestre",tipo:"at"},{semana:11,trim:2,tema:"Wuzu – Parte 2: Sunnats",licao:"Os 10 Sunnats do Wuzu"},{semana:12,trim:2,tema:"Anuladores do Wuzu (Nawaqidh)",licao:"Os 4 Nawaqidh do Wuzu"},{semana:13,trim:2,tema:"Etiquetas da Casa de Banho – Parte 1",licao:"Etiquetas islâmicas; Du'as"},{semana:14,trim:2,tema:"1ª A.S.",licao:"Avaliação Semestral — Semanas 11 a 13",tipo:"as1"},{semana:15,trim:2,tema:"Etiquetas da Casa de Banho – Parte 2",licao:"Istinjaa: definição e forma correcta"},{semana:16,trim:2,tema:"Capítulo do Banho (Ghusl) – Parte 1",licao:"As 3 obrigações do Ghusl"},{semana:17,trim:2,tema:"Capítulo do Banho (Ghusl) – Parte 2",licao:"Ghusl Sunnat; dias recomendados"},{semana:18,trim:2,tema:"2ª A.S.",licao:"Avaliação Semestral — Semanas 15 a 17",tipo:"as2"},{semana:19,trim:2,tema:"Mas'h sobre as Meias (Khuffayn)",licao:"Condições para o Mas'h"},{semana:20,trim:2,tema:"A.T.2",licao:"Avaliação Trimestral — 2º Trimestre",tipo:"at"},{semana:21,trim:3,tema:"Tayamum – Parte 1",licao:"Definição; razões válidas"},{semana:22,trim:3,tema:"Tayamum – Parte 2",licao:"As 3 condições; como se faz"},{semana:23,trim:3,tema:"Tayamum – Parte 3 (casos práticos)",licao:"O que fazer ao encontrar água"},{semana:24,trim:3,tema:"1ª A.S.",licao:"Avaliação Semestral — Tayamum",tipo:"as1"},{semana:25,trim:3,tema:"Impurezas (Najasaat) – Parte 1",licao:"O que é Najasa; substâncias Najas"},{semana:26,trim:3,tema:"Impurezas (Najasaat) – Parte 2",licao:"Khamr, Khinzir e Mayta"},{semana:27,trim:3,tema:"Impurezas – Como lavar e Purificar",licao:"Como purificar cada tipo de Najasa"},{semana:28,trim:3,tema:"2ª A.S.",licao:"Avaliação Semestral — Najasaat",tipo:"as2"},{semana:29,trim:3,tema:"Revisão Geral do Ano",licao:"Todos os capítulos do ano"},{semana:30,trim:3,tema:"A.T.3 + Exame Anual",licao:"Avaliação final e Exame Anual",tipo:"ea"}];
+const PLANO_SEERAH_ANO1=[{semana:1,trim:1,tema:"Introdução ao Seerah",licao:"O que é Seerah; criação de Adam A.S."},{semana:2,trim:1,tema:"Nabis, Rassuls e Linhagem",licao:"Diferença entre Nabi e Rassul"},{semana:3,trim:1,tema:"A Península Arábica",licao:"Localização geográfica; os 3 povos"},{semana:4,trim:1,tema:"1ª A.S.",licao:"Avaliação Semestral — Semanas 1 a 3",tipo:"as1"},{semana:5,trim:1,tema:"Religiões antes do Islam",licao:"Idolatria, Cristianismo e Judaísmo"},{semana:6,trim:1,tema:"Aamul Fil — O Ano do Elefante",licao:"Abraha e o seu exército; os pássaros Ababil"},{semana:7,trim:1,tema:"Nascimento e Infância do Profeta ﷺ",licao:"Os pais; nascimento em 571 d.C."},{semana:8,trim:1,tema:"2ª A.S.",licao:"Avaliação Semestral — Semanas 5 a 7",tipo:"as2"},{semana:9,trim:1,tema:"Shaqq Al-Sadr e Orfandade",licao:"Rompimento do Peito; morte da mãe Aminah"},{semana:10,trim:1,tema:"A.T.1",licao:"Avaliação Trimestral — 1º Trimestre",tipo:"at"},{semana:11,trim:2,tema:"Sinais da Profecia – Parte 1",licao:"Viagem aos 12 anos para Shaam"},{semana:12,trim:2,tema:"Sinais da Profecia – Parte 2",licao:"Profissões do Profeta ﷺ; Al-Amin"},{semana:13,trim:2,tema:"Casamento com Khadija e Ka'ba",licao:"Como Khadija propôs; Al-Hajar Al-Aswad"},{semana:14,trim:2,tema:"1ª A.S.",licao:"Avaliação Semestral — Semanas 11 a 13",tipo:"as1"},{semana:15,trim:2,tema:"O Início da Revelação – Parte 1",licao:"Ghar Hiraa; 1ª revelação de Jibra'il"},{semana:16,trim:2,tema:"O Início da Revelação – Parte 2",licao:"Waraka bin Naufal; Suratul Mudathir"},{semana:17,trim:2,tema:"Da'wah Secreto — Primeiros Muçulmanos",licao:"Khadija, Abu Bakr, Zayd e Ali R.A."},{semana:18,trim:2,tema:"2ª A.S.",licao:"Avaliação Semestral — Semanas 15 a 17",tipo:"as2"},{semana:19,trim:2,tema:"Da'wah Aberto – Jantares e Jabal Safa",licao:"Os Ashara Mubashireena"},{semana:20,trim:2,tema:"A.T.2",licao:"Avaliação Trimestral — 2º Trimestre",tipo:"at"},{semana:21,trim:3,tema:"Estratégias dos Mushrikeen – Parte 1",licao:"Gozo e difamação; Suratul Kafirun"},{semana:22,trim:3,tema:"Estratégias dos Mushrikeen – Parte 2",licao:"Duas conversas com Abu Taalib"},{semana:23,trim:3,tema:"Ataques contra o Profeta ﷺ",licao:"Abu Lahab; Abu Jahl"},{semana:24,trim:3,tema:"1ª A.S.",licao:"Avaliação Semestral — Semanas 21 a 23",tipo:"as1"},{semana:25,trim:3,tema:"Perseguição dos Sahabas e Casa de Arqam",licao:"Bilaal R.A.; Yasir e Sumaya"},{semana:26,trim:3,tema:"O Hijra para Habasha",licao:"1º e 2º Hijra"},{semana:27,trim:3,tema:"Já'far diante do Rei Najash",licao:"Discurso de Já'far; decisão de Najash"},{semana:28,trim:3,tema:"2ª A.S.",licao:"Avaliação Semestral — Semanas 25 a 27",tipo:"as2"},{semana:29,trim:3,tema:"O Islam de Hamza e Umar R.A.",licao:"Islam de Hamza; Islam de Umar R.A."},{semana:30,trim:3,tema:"A.T.3 + Exame Anual",licao:"Avaliação final e Exame Anual",tipo:"ea"}];
+const PLANO_AQIDAH_ANO1=[{semana:1,trim:1,tema:"Introdução ao Aquida",licao:"O que é Aquida; fontes"},{semana:2,trim:1,tema:"Conceitos Básicos do Iman",licao:"Definição de Iman; 3 divisões"},{semana:3,trim:1,tema:"A Importância do Iman e os 3 Princípios",licao:"O coração no Iman; perguntas do Qabr"},{semana:4,trim:1,tema:"1ª A.S.",licao:"Avaliação Semestral — Semanas 1 a 3",tipo:"as1"},{semana:5,trim:1,tema:"Tauhid — Definição e Divisões",licao:"O que é Tauhid; 3 divisões"},{semana:6,trim:1,tema:"Tauhid Al-Rububiya — Al-Khaliq",licao:"Allah como criador"},{semana:7,trim:1,tema:"Tauhid Al-Rububiya — Al-Razzaq e Al-Mudabbir",licao:"Allah como sustentador e controlador"},{semana:8,trim:1,tema:"2ª A.S.",licao:"Avaliação Semestral — Semanas 5 a 7",tipo:"as2"},{semana:9,trim:1,tema:"Tauhid Al-Uluhiya — Definição e Fundamentos",licao:"Definição de Uluhiya; Taghut"},{semana:10,trim:1,tema:"A.T.1",licao:"Avaliação Trimestral — 1º Trimestre",tipo:"at"},{semana:11,trim:2,tema:"Ibrahim A.S. e o Tauhid Al-Uluhiya",licao:"Ibrahim A.S. e os astros; ídolos"},{semana:12,trim:2,tema:"O que é Ibadah — Tipos Externos",licao:"Definição; Al-Ikhlass e Al-Mutaba'a"},{semana:13,trim:2,tema:"Ibadah Interno e Conexão Rububiya-Uluhiya",licao:"Mahabba, Tawakkul, Sabr, Shukr"},{semana:14,trim:2,tema:"1ª A.S.",licao:"Avaliação Semestral — Semanas 11 a 13",tipo:"as1"},{semana:15,trim:2,tema:"Asmaa wa Sifaat — Princípios 1 e 2",licao:"Al-Ithbaat e Al-Nafy"},{semana:16,trim:2,tema:"Asmaa wa Sifaat — Princípios 3, 4 e 5",licao:"Adam Takyif, Adam Tashbih, Al-Tawaquf"},{semana:17,trim:2,tema:"Crença no Profeta ﷺ — Parte 1",licao:"As 6 crenças obrigatórias: primeiras 4"},{semana:18,trim:2,tema:"2ª A.S.",licao:"Avaliação Semestral — Semanas 15 a 17",tipo:"as2"},{semana:19,trim:2,tema:"Crença no Profeta ﷺ — Parte 2 e 5 Direitos",licao:"5ª e 6ª crenças; os 5 direitos"},{semana:20,trim:2,tema:"A.T.2",licao:"Avaliação Trimestral — 2º Trimestre",tipo:"at"},{semana:21,trim:3,tema:"Al-Shafa'tul Kubraa — Parte 1",licao:"O dia de Qiyamah; os 5 Profetas"},{semana:22,trim:3,tema:"Al-Shafa'tul Kubraa — O Profeta ﷺ Intercede",licao:"As 4 intercessões perante Allah"},{semana:23,trim:3,tema:"O Terceiro Princípio: O Islam",licao:"Definição de Islam; Suratul Imraan"},{semana:24,trim:3,tema:"1ª A.S.",licao:"Avaliação Semestral — Semanas 21 a 23",tipo:"as1"},{semana:25,trim:3,tema:"Os Pilares do Islam — Shahada e Salah",licao:"5 pilares; Shahadatayn; Salah"},{semana:26,trim:3,tema:"Os Pilares do Islam — Zakat, Jejum e Hajj",licao:"Zakat, Jejum e Hajj"},{semana:27,trim:3,tema:"Condições do Shahada — Ilm e Yaqin",licao:"A chave do Jannah; Ilm e Yaqin"},{semana:28,trim:3,tema:"2ª A.S.",licao:"Avaliação Semestral — Semanas 25 a 27",tipo:"as2"},{semana:29,trim:3,tema:"Condições do Shahada — Qabul a Mahabba",licao:"3ª a 7ª condições"},{semana:30,trim:3,tema:"A.T.3 + Exame Anual",licao:"Avaliação final e Exame Anual",tipo:"ea"}];
+const TIPOS_AULA=[{id:"aula",label:"Aula Normal"},{id:"as1",label:"1ª Avaliação Semestral (A.S.)"},{id:"as2",label:"2ª Avaliação Semestral (A.S.)"},{id:"at",label:"Avaliação Trimestral (A.T.)"},{id:"ea",label:"Exame Anual (E.A.)"}];
+function getPlano(sid){return({fiqh_b1:PLANO_FIQH_ANO1,seerah_b1:PLANO_SEERAH_ANO1,aqidah_b1:PLANO_AQIDAH_ANO1}[sid]||[]);}
+const MADRASSA_LEVELS = ["1ª Parte","2ª Parte","Amma","Qur'an"];
 
 function ClassManager({ data, onSaveClasses }) {
   const {classes, teachers, students} = data;
   const [name, setName]           = useState("");
   const [year, setYear]           = useState("2025/2026");
   const [type, setType]           = useState("cim"); // "cim" | "madrassa"
+  const [level, setLevel]         = useState("");
   const [teacherId, setTeacherId] = useState("");
+  const [schoolId, setSchoolId]   = useState("");
   const [msg, setMsg]             = useState({text:"", type:""});
   const [openId, setOpenId]       = useState(null);
   const [openTab, setOpenTab]     = useState("subjects"); // "subjects" | "schedule"
@@ -1213,11 +1158,15 @@ function ClassManager({ data, onSaveClasses }) {
   function addClass() {
     if (!name.trim()) { setMsg({text:"Escreve o nome da turma.", type:"error"}); return; }
     const id = `cls_${Date.now()}`;
+    const autoSubjs = type==="cim" && level==="Básico 1º Ano"
+      ? [{id:"fiqh_b1",name:"Fiqh"},{id:"seerah_b1",name:"Seerah"},{id:"aqidah_b1",name:"Aqidah"}]
+      : [];
     onSaveClasses([...classes, {
-      id, name:name.trim(), year, type, teacherId,
-      subjects:[], schedule:[], createdAt:new Date().toISOString()
+      id, name:name.trim(), year, type, level, teacherId, schoolId,
+      subjects:autoSubjs, schedule:[], createdAt:new Date().toISOString()
     }]);
-    setName(""); setMsg({text:`Turma "${name}" criada.`, type:"success"});
+    const autoMsg = autoSubjs.length ? ` — Fiqh, Seerah e Aqidah criadas automaticamente` : "";
+    setName(""); setMsg({text:`Turma "${name}" criada.${autoMsg}`, type:"success"});
   }
 
   function addSubject(classId) {
@@ -1272,11 +1221,18 @@ function ClassManager({ data, onSaveClasses }) {
         <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:"1rem", marginBottom:"1rem"}}>
           <div>
             <div style={{...T.label, marginBottom:5}}>Tipo</div>
-            <select style={{...inp}} value={type} onChange={e=>setType(e.target.value)}>
+            <select style={{...inp}} value={type} onChange={e=>{setType(e.target.value);setLevel("");}}>
               <option value="cim">CIM</option>
               <option value="madrassa">Madrassa</option>
             </select>
           </div>
+          {type==="cim"&&<div>
+            <div style={{...T.label, marginBottom:5}}>Nível CIM</div>
+            <select style={{...inp}} value={level} onChange={e=>setLevel(e.target.value)}>
+              <option value="">Selecionar nível</option>
+              {CIM_LEVELS.map(l=><option key={l} value={l}>{l}</option>)}
+            </select>
+          </div>}
           <div>
             <div style={{...T.label, marginBottom:5}}>Nome da Turma</div>
             <input style={inp} value={name} placeholder="Ex: Turma A" onChange={e=>setName(e.target.value)}/>
@@ -1286,13 +1242,25 @@ function ClassManager({ data, onSaveClasses }) {
             <input style={inp} value={year} onChange={e=>setYear(e.target.value)}/>
           </div>
           <div>
+            <div style={{...T.label, marginBottom:5}}>Escola</div>
+            <select style={{...inp}} value={schoolId} onChange={e=>setSchoolId(e.target.value)}>
+              <option value="">Selecionar escola</option>
+              {(data.schools||[]).map(s=><option key={s.id} value={s.id}>{s.name} ({s.code})</option>)}
+            </select>
+          </div>
+          <div>
             <div style={{...T.label, marginBottom:5}}>Professor</div>
             <select style={{...inp}} value={teacherId} onChange={e=>setTeacherId(e.target.value)}>
               <option value="">Selecionar (opcional)</option>
-              {teachers.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}
+              {teachers.filter(t=>!schoolId||t.schoolId===schoolId).map(t=><option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
           </div>
         </div>
+        {type==="cim"&&level==="Básico 1º Ano"&&(
+          <div style={{marginBottom:"0.75rem",padding:"0.6rem 0.9rem",background:"#EAF7F0",borderRadius:8,fontSize:"0.83rem",color:"#1A7A4A"}}>
+            ✓ <b>Fiqh, Seerah e Aqidah</b> serão criadas automaticamente com planos temáticos.
+          </div>
+        )}
         <div style={{display:"flex", alignItems:"center", gap:"1rem"}}>
           <Btn icon="plus" onClick={addClass}>Criar Turma</Btn>
           <Msg {...msg}/>
@@ -1928,7 +1896,6 @@ function Settings({ apiKey, onSave }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // TEACHER SHELL
 // ═══════════════════════════════════════════════════════════════════════════════
-// ── Slot Active Helper ────────────────────────────────────────────────────────
 function slotActive(slot) {
   if (!slot) return false;
   const n = new Date();
@@ -1945,8 +1912,6 @@ function TeacherShell({ user, data, save, onLogout }) {
   const myStudents = data.students.filter(s=>myClasses.some(c=>c.id===s.classId));
   const myReports  = data.reports.filter(r=>r.teacherId===user.id)
     .sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-
-  // Check for active slot right now
   const activeNow = myClasses.some(cls=>(cls.schedule||[]).some(s=>(!s.slotTeacherId||s.slotTeacherId===user.id)&&slotActive(s)));
 
   const nav = [
@@ -2041,182 +2006,88 @@ function TeacherSchedule({ user, data }) {
   );
 }
 
+
 // ── Aula de Hoje ──────────────────────────────────────────────────────────────
 function TeacherAula({ user, myClasses, myStudents, attendance, onSave }) {
-  const dayNames = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
-  const todayName = dayNames[new Date().getDay()];
-  const dateStr = new Date().toISOString().split("T")[0];
-
-  // All slots today for this teacher
-  const todaySlots = myClasses.flatMap(cls=>
-    (cls.schedule||[])
-      .filter(s=>s.day===todayName&&(!s.slotTeacherId||s.slotTeacherId===user.id))
-      .map(s=>({...s, cls, subjectName:(cls.subjects||[]).find(x=>x.id===s.subjectId)?.name||""}))
-  ).sort((a,b)=>a.start.localeCompare(b.start));
-
-  const [selSlot, setSelSlot] = useState(todaySlots.find(s=>slotActive(s))||null);
-  const [tipoAula, setTipoAula] = useState("aula");
-  const [semana, setSemana] = useState(null);
-  const [marks, setMarks] = useState({});
-  const [saved, setSaved] = useState(false);
-
-  const cls = selSlot?.cls;
-  const isCIM = cls?.type !== "madrassa";
-  const slotKey = selSlot ? `${dateStr}_${selSlot.id}` : "";
-
-  // Load existing attendance for this slot
+  const dayNames=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
+  const todayName=dayNames[new Date().getDay()];
+  const dateStr=new Date().toISOString().split("T")[0];
+  const todaySlots=myClasses.flatMap(cls=>(cls.schedule||[]).filter(s=>s.day===todayName&&(!s.slotTeacherId||s.slotTeacherId===user.id)).map(s=>({...s,cls,subjectName:(cls.subjects||[]).find(x=>x.id===s.subjectId)?.name||""}))).sort((a,b)=>a.start.localeCompare(b.start));
+  const [selSlot,setSelSlot]=useState(todaySlots.find(s=>slotActive(s))||null);
+  const [tipoAula,setTipoAula]=useState("aula");
+  const [semana,setSemana]=useState(null);
+  const [marks,setMarks]=useState({});
+  const [saved,setSaved]=useState(false);
+  const cls=selSlot?.cls;
+  const slotKey=selSlot?`${dateStr}_${selSlot.id}`:"";
   useEffect(()=>{
-    if (!slotKey) return;
-    const existing = attendance.find(a=>a.id===slotKey);
-    if (existing) {
-      setMarks(existing.marks||{});
-      setTipoAula(existing.tipoAula||"aula");
-      setSemana(existing.semana||null);
-    } else {
-      const init = {};
-      (cls?myStudents.filter(s=>s.classId===cls.id):[]).forEach(s=>{init[s.id]="present";});
-      setMarks(init);
-      setTipoAula("aula");
-      setSemana(null);
-    }
+    if(!slotKey)return;
+    const existing=attendance.find(a=>a.id===slotKey);
+    if(existing){setMarks(existing.marks||{});setTipoAula(existing.tipoAula||"aula");setSemana(existing.semana||null);}
+    else{const init={};(cls?myStudents.filter(s=>s.classId===cls.id):[]).forEach(s=>{init[s.id]="present";});setMarks(init);setTipoAula("aula");setSemana(null);}
     setSaved(false);
   },[slotKey]);
-
-  function save() {
-    const rec = {id:slotKey, slotId:selSlot.id, classId:cls.id, teacherId:user.id,
-      date:dateStr, tipoAula, semana, marks};
-    onSave([...attendance.filter(a=>a.id!==slotKey), rec]);
-    setSaved(true); setTimeout(()=>setSaved(false),2500);
+  function saveAula(){
+    const rec={id:slotKey,slotId:selSlot.id,classId:cls.id,teacherId:user.id,date:dateStr,tipoAula,semana,marks};
+    onSave([...attendance.filter(a=>a.id!==slotKey),rec]);
+    setSaved(true);setTimeout(()=>setSaved(false),2500);
   }
-
-  const clsStudents = cls ? myStudents.filter(s=>s.classId===cls.id) : [];
-  const isActive = selSlot && slotActive(selSlot);
-
-  // Get plano for selected subject
-  const subjectId = selSlot?.subjectId;
-  const planoMap = {"fiqh_b1":PLANO_FIQH_ANO1,"seerah_b1":PLANO_SEERAH_ANO1,"aqidah_b1":PLANO_AQIDAH_ANO1};
-  const plano = subjectId ? (planoMap[subjectId]||[]) : [];
-
+  const clsStudents=cls?myStudents.filter(s=>s.classId===cls.id):[];
+  const isActive=selSlot&&slotActive(selSlot);
+  const plano=selSlot?.subjectId?getPlano(selSlot.subjectId):[];
+  const TIPOS=[{id:"aula",label:"Aula Normal"},{id:"as1",label:"1ª Avaliação Semestral (A.S.)"},{id:"as2",label:"2ª Avaliação Semestral (A.S.)"},{id:"at",label:"Avaliação Trimestral (A.T.)"},{id:"ea",label:"Exame Anual (E.A.)"}];
   return (
     <div>
-      <div style={{marginBottom:"2rem"}}>
-        <h1 style={T.h1}>Aula de Hoje</h1>
-        <p style={{...T.body,marginTop:4}}>
-          {todayName} · {new Date().toLocaleDateString("pt-PT")} · Janela: 10 min antes / depois
-        </p>
-      </div>
-
-      {todaySlots.length===0 && (
-        <Card><p style={T.body}>Sem aulas agendadas para hoje.</p></Card>
-      )}
-
-      {todaySlots.length>0 && <>
-        {/* Slot selector */}
+      <div style={{marginBottom:"2rem"}}><h1 style={T.h1}>Aula de Hoje</h1><p style={{...T.body,marginTop:4}}>{todayName} · {new Date().toLocaleDateString("pt-PT")} · Janela: ±10 min</p></div>
+      {todaySlots.length===0&&<Card><p style={T.body}>Sem aulas agendadas para hoje.</p></Card>}
+      {todaySlots.length>0&&<>
         <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap",marginBottom:"1.5rem"}}>
-          {todaySlots.map(s=>{
-            const active=slotActive(s); const sel=selSlot?.id===s.id;
-            const color=active?C.green:C.blue;
-            return (
-              <button key={s.id} onClick={()=>{setSelSlot(s);setSaved(false);}} style={{padding:"0.65rem 1.2rem",borderRadius:10,cursor:"pointer",fontFamily:"inherit",fontSize:"0.875rem",border:`2px solid ${sel?color:C.line}`,background:sel?color+"18":C.white,color:sel?color:C.slate,fontWeight:600}}>
-                {s.start}–{s.end} · {s.cls.name}
-                {s.subjectName&&` · ${s.subjectName}`}
-                {active&&<span style={{marginLeft:6,fontSize:"0.75rem"}}>🟢</span>}
-              </button>
-            );
-          })}
+          {todaySlots.map(s=>{const active=slotActive(s);const sel=selSlot?.id===s.id;const color=active?"#1A7A4A":C.blue;return<button key={s.id} onClick={()=>{setSelSlot(s);setSaved(false);}} style={{padding:"0.65rem 1.2rem",borderRadius:10,cursor:"pointer",fontFamily:"inherit",fontSize:"0.875rem",border:`2px solid ${sel?color:C.line}`,background:sel?color+"18":C.white,color:sel?color:C.slate,fontWeight:600}}>{s.start}–{s.end} · {s.cls.name}{s.subjectName&&` · ${s.subjectName}`}{active&&<span style={{marginLeft:6}}>🟢</span>}</button>;})}
         </div>
-
-        {selSlot && (
-          isActive ? (
-            <div>
-              {saved && (
-                <div style={{marginBottom:"1rem",padding:"0.75rem 1rem",background:C.greenPale,borderRadius:10,color:C.green,fontWeight:600,display:"flex",alignItems:"center",gap:8}}>
-                  <Icon name="check" size={18} color={C.green}/> Aula registada com sucesso!
-                </div>
-              )}
-
-              {/* Tipo de sessão */}
-              <Card style={{marginBottom:"1rem",padding:"1.2rem"}}>
-                <div style={{...T.label,marginBottom:10}}>Tipo de Sessão</div>
-                <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap"}}>
-                  {TIPOS_AULA.map(t=>(
-                    <button key={t.id} onClick={()=>setTipoAula(t.id)} style={{padding:"0.5rem 1rem",borderRadius:8,cursor:"pointer",fontFamily:"inherit",fontSize:"0.82rem",fontWeight:600,border:`2px solid ${tipoAula===t.id?C.blue:C.line}`,background:tipoAula===t.id?C.bluePale:C.white,color:tipoAula===t.id?C.blue:C.slate}}>
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-              </Card>
-
-              {/* Plano temático (só para aula normal CIM com plano) */}
-              {tipoAula==="aula" && plano.length>0 && (
-                <Card style={{marginBottom:"1rem",padding:"1.2rem"}}>
-                  <div style={{...T.label,marginBottom:10}}>Lição do Plano Temático</div>
-                  <select style={{...inp}} value={semana||""} onChange={e=>setSemana(e.target.value?Number(e.target.value):null)}>
-                    <option value="">Selecionar lição...</option>
-                    {[1,2,3].map(trim=>(
-                      <optgroup key={trim} label={`${trim}º Trimestre`}>
-                        {plano.filter(p=>p.trim===trim&&!p.tipo).map(p=>(
-                          <option key={p.semana} value={p.semana}>
-                            Sem. {p.semana} — {p.tema}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                  {semana && (()=>{
-                    const licao=plano.find(p=>p.semana===semana);
-                    return licao ? (
-                      <div style={{marginTop:"0.75rem",background:C.blueFaint,borderRadius:8,padding:"0.75rem",fontSize:"0.85rem",color:C.slate}}>
-                        <b style={{color:C.navy}}>{licao.tema}</b><br/>{licao.licao}
-                      </div>
-                    ) : null;
-                  })()}
-                </Card>
-              )}
-
-              {/* Presença dos alunos */}
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1rem"}}>
-                <h2 style={{...T.h2,fontSize:"1.1rem"}}>Presenças — {cls?.name}</h2>
-                <div style={{display:"flex",gap:8}}>
-                  <button onClick={()=>{const m={};clsStudents.forEach(s=>{m[s.id]="present";});setMarks(m);}} style={{background:C.greenPale,color:C.green,border:"none",borderRadius:7,padding:"0.4rem 0.9rem",cursor:"pointer",fontSize:"0.82rem",fontWeight:600,fontFamily:"inherit"}}>Todos Presentes</button>
-                  <Btn icon="check" variant="success" onClick={save}>Guardar</Btn>
-                </div>
-              </div>
-
-              <div style={{display:"grid",gap:"0.5rem"}}>
-                {clsStudents.map((s,i)=>{
-                  const status=marks[s.id]||"present";
-                  return (
-                    <Card key={s.id} style={{padding:"0.75rem 1.2rem",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                      <div style={{display:"flex",alignItems:"center",gap:12}}>
-                        <div style={{width:34,height:34,borderRadius:9,background:status==="present"?C.greenPale:C.redPale,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:"0.8rem",color:status==="present"?C.green:C.red}}>{i+1}</div>
-                        <div>
-                          <div style={{fontWeight:600,color:C.navy,fontSize:"0.9rem"}}>{s.name}</div>
-                          <span style={T.mono}>{s.code}</span>
-                        </div>
-                      </div>
-                      <div style={{display:"flex",gap:8}}>
-                        <button onClick={()=>setMarks({...marks,[s.id]:"present"})} style={{padding:"0.4rem 1rem",borderRadius:8,border:`2px solid ${status==="present"?C.green:C.line}`,background:status==="present"?C.greenPale:C.white,color:status==="present"?C.green:C.slate,cursor:"pointer",fontWeight:600,fontSize:"0.82rem",fontFamily:"inherit"}}>✓ Presente</button>
-                        <button onClick={()=>setMarks({...marks,[s.id]:"absent"})}  style={{padding:"0.4rem 1rem",borderRadius:8,border:`2px solid ${status==="absent"?C.red:C.line}`,background:status==="absent"?C.redPale:C.white,color:status==="absent"?C.red:C.slate,cursor:"pointer",fontWeight:600,fontSize:"0.82rem",fontFamily:"inherit"}}>✗ Falta</button>
-                      </div>
-                    </Card>
-                  );
-                })}
-                {clsStudents.length===0&&<p style={T.body}>Sem alunos nesta turma.</p>}
-              </div>
-
-              {clsStudents.length>0&&<div style={{marginTop:"1rem",display:"flex",justifyContent:"flex-end"}}><Btn icon="check" variant="success" onClick={save}>Guardar Aula</Btn></div>}
-            </div>
-          ) : (
-            <Card>
-              <div style={{textAlign:"center",padding:"2rem"}}>
-                <Icon name="clock" size={48} color={C.slateLight}/>
-                <h2 style={{...T.h2,marginTop:"1rem",marginBottom:"0.5rem"}}>Fora do horário</h2>
-                <p style={T.body}>A aula pode ser registada entre as <b>{selSlot.start}</b> (−10 min) e as <b>{selSlot.end}</b> (+10 min).</p>
-              </div>
+        {selSlot&&(isActive?(
+          <div>
+            {saved&&<div style={{marginBottom:"1rem",padding:"0.75rem 1rem",background:"#EAF7F0",borderRadius:10,color:"#1A7A4A",fontWeight:600,display:"flex",alignItems:"center",gap:8}}><Icon name="check" size={18} color="#1A7A4A"/> Aula registada!</div>}
+            <Card style={{marginBottom:"1rem",padding:"1.2rem"}}>
+              <div style={{...T.label,marginBottom:10}}>Tipo de Sessão</div>
+              <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap"}}>{TIPOS.map(t=><button key={t.id} onClick={()=>setTipoAula(t.id)} style={{padding:"0.5rem 1rem",borderRadius:8,cursor:"pointer",fontFamily:"inherit",fontSize:"0.82rem",fontWeight:600,border:`2px solid ${tipoAula===t.id?C.blue:C.line}`,background:tipoAula===t.id?C.bluePale:C.white,color:tipoAula===t.id?C.blue:C.slate}}>{t.label}</button>)}</div>
             </Card>
-          )
-        )}
+            {tipoAula==="aula"&&plano.length>0&&(
+              <Card style={{marginBottom:"1rem",padding:"1.2rem"}}>
+                <div style={{...T.label,marginBottom:10}}>Lição do Plano Temático</div>
+                <select style={{...inp}} value={semana||""} onChange={e=>setSemana(e.target.value?Number(e.target.value):null)}>
+                  <option value="">Selecionar lição...</option>
+                  {[1,2,3].map(trim=><optgroup key={trim} label={`${trim}º Trimestre`}>{plano.filter(p=>p.trim===trim&&!p.tipo).map(p=><option key={p.semana} value={p.semana}>Sem. {p.semana} — {p.tema}</option>)}</optgroup>)}
+                </select>
+                {semana&&(()=>{const l=plano.find(p=>p.semana===semana);return l?<div style={{marginTop:"0.75rem",background:C.blueFaint,borderRadius:8,padding:"0.75rem",fontSize:"0.85rem",color:C.slate}}><b style={{color:C.navy}}>{l.tema}</b><br/>{l.licao}</div>:null;})()}
+              </Card>
+            )}
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1rem"}}>
+              <h2 style={{...T.h2,fontSize:"1.1rem"}}>Presenças — {cls?.name}</h2>
+              <div style={{display:"flex",gap:8}}>
+                <button onClick={()=>{const m={};clsStudents.forEach(s=>{m[s.id]="present";});setMarks(m);}} style={{background:"#EAF7F0",color:"#1A7A4A",border:"none",borderRadius:7,padding:"0.4rem 0.9rem",cursor:"pointer",fontSize:"0.82rem",fontWeight:600,fontFamily:"inherit"}}>Todos Presentes</button>
+                <Btn icon="check" variant="success" onClick={saveAula}>Guardar</Btn>
+              </div>
+            </div>
+            <div style={{display:"grid",gap:"0.5rem"}}>
+              {clsStudents.map((s,i)=>{const status=marks[s.id]||"present";return(
+                <Card key={s.id} style={{padding:"0.75rem 1.2rem",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:12}}>
+                    <div style={{width:34,height:34,borderRadius:9,background:status==="present"?"#EAF7F0":"#FEF2F2",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:"0.8rem",color:status==="present"?"#1A7A4A":"#B91C1C"}}>{i+1}</div>
+                    <div><div style={{fontWeight:600,color:C.navy,fontSize:"0.9rem"}}>{s.name}</div><span style={T.mono}>{s.code}</span></div>
+                  </div>
+                  <div style={{display:"flex",gap:8}}>
+                    <button onClick={()=>setMarks({...marks,[s.id]:"present"})} style={{padding:"0.4rem 1rem",borderRadius:8,border:`2px solid ${status==="present"?"#1A7A4A":C.line}`,background:status==="present"?"#EAF7F0":C.white,color:status==="present"?"#1A7A4A":C.slate,cursor:"pointer",fontWeight:600,fontSize:"0.82rem",fontFamily:"inherit"}}>✓ Presente</button>
+                    <button onClick={()=>setMarks({...marks,[s.id]:"absent"})} style={{padding:"0.4rem 1rem",borderRadius:8,border:`2px solid ${status==="absent"?"#B91C1C":C.line}`,background:status==="absent"?"#FEF2F2":C.white,color:status==="absent"?"#B91C1C":C.slate,cursor:"pointer",fontWeight:600,fontSize:"0.82rem",fontFamily:"inherit"}}>✗ Falta</button>
+                  </div>
+                </Card>
+              );})}
+              {clsStudents.length===0&&<p style={T.body}>Sem alunos nesta turma.</p>}
+            </div>
+            {clsStudents.length>0&&<div style={{marginTop:"1rem",display:"flex",justifyContent:"flex-end"}}><Btn icon="check" variant="success" onClick={saveAula}>Guardar Aula</Btn></div>}
+          </div>
+        ):(
+          <Card><div style={{textAlign:"center",padding:"2rem"}}><Icon name="clock" size={48} color={C.slateLight}/><h2 style={{...T.h2,marginTop:"1rem",marginBottom:"0.5rem"}}>Fora do horário</h2><p style={T.body}>Disponível entre as <b>{selSlot.start}</b> (−10 min) e as <b>{selSlot.end}</b> (+10 min).</p></div></Card>
+        ))}
       </>}
     </div>
   );
@@ -2580,14 +2451,14 @@ function StudentShell({ user, data, onLogout }) {
   return (
     <Shell user={user} nav={nav} onLogout={onLogout}>
       {({tab}) => <>
-        {tab==="card"   && <MyStudentCard user={user} data={data}/>}
+        {tab==="card"   && <StudentCard   user={user} data={data}/>}
         {tab==="grades" && <StudentGrades user={user} data={data}/>}
       </>}
     </Shell>
   );
 }
 
-function MyStudentCard({ user, data }) {
+function StudentCard({ user, data }) {
   const {classes, teachers} = data;
   const cls     = classes.find(c=>c.id===user.classId);
   const teacher = teachers.find(t=>t.id===cls?.teacherId);
