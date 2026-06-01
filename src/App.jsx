@@ -1147,7 +1147,215 @@ const PLANO_FIQH_ANO1=[{semana:1,trim:1,tema:"Introdução ao Fiq'h",licao:"Defi
 const PLANO_SEERAH_ANO1=[{semana:1,trim:1,tema:"Introdução ao Seerah",licao:"O que é Seerah; criação de Adam A.S."},{semana:2,trim:1,tema:"Nabis, Rassuls e Linhagem",licao:"Diferença entre Nabi e Rassul"},{semana:3,trim:1,tema:"A Península Arábica",licao:"Localização geográfica; os 3 povos"},{semana:4,trim:1,tema:"1ª A.S.",licao:"Avaliação Semestral — Semanas 1 a 3",tipo:"as1"},{semana:5,trim:1,tema:"Religiões antes do Islam",licao:"Idolatria, Cristianismo e Judaísmo"},{semana:6,trim:1,tema:"Aamul Fil — O Ano do Elefante",licao:"Abraha e o seu exército; os pássaros Ababil"},{semana:7,trim:1,tema:"Nascimento e Infância do Profeta ﷺ",licao:"Os pais; nascimento em 571 d.C."},{semana:8,trim:1,tema:"2ª A.S.",licao:"Avaliação Semestral — Semanas 5 a 7",tipo:"as2"},{semana:9,trim:1,tema:"Shaqq Al-Sadr e Orfandade",licao:"Rompimento do Peito; morte da mãe Aminah"},{semana:10,trim:1,tema:"A.T.1",licao:"Avaliação Trimestral — 1º Trimestre",tipo:"at"},{semana:11,trim:2,tema:"Sinais da Profecia – Parte 1",licao:"Viagem aos 12 anos para Shaam"},{semana:12,trim:2,tema:"Sinais da Profecia – Parte 2",licao:"Profissões do Profeta ﷺ; Al-Amin"},{semana:13,trim:2,tema:"Casamento com Khadija e Ka'ba",licao:"Como Khadija propôs; Al-Hajar Al-Aswad"},{semana:14,trim:2,tema:"1ª A.S.",licao:"Avaliação Semestral — Semanas 11 a 13",tipo:"as1"},{semana:15,trim:2,tema:"O Início da Revelação – Parte 1",licao:"Ghar Hiraa; 1ª revelação de Jibra'il"},{semana:16,trim:2,tema:"O Início da Revelação – Parte 2",licao:"Waraka bin Naufal; Suratul Mudathir"},{semana:17,trim:2,tema:"Da'wah Secreto — Primeiros Muçulmanos",licao:"Khadija, Abu Bakr, Zayd e Ali R.A."},{semana:18,trim:2,tema:"2ª A.S.",licao:"Avaliação Semestral — Semanas 15 a 17",tipo:"as2"},{semana:19,trim:2,tema:"Da'wah Aberto – Jantares e Jabal Safa",licao:"Os Ashara Mubashireena"},{semana:20,trim:2,tema:"A.T.2",licao:"Avaliação Trimestral — 2º Trimestre",tipo:"at"},{semana:21,trim:3,tema:"Estratégias dos Mushrikeen – Parte 1",licao:"Gozo e difamação; Suratul Kafirun"},{semana:22,trim:3,tema:"Estratégias dos Mushrikeen – Parte 2",licao:"Duas conversas com Abu Taalib"},{semana:23,trim:3,tema:"Ataques contra o Profeta ﷺ",licao:"Abu Lahab; Abu Jahl"},{semana:24,trim:3,tema:"1ª A.S.",licao:"Avaliação Semestral — Semanas 21 a 23",tipo:"as1"},{semana:25,trim:3,tema:"Perseguição dos Sahabas e Casa de Arqam",licao:"Bilaal R.A.; Yasir e Sumaya"},{semana:26,trim:3,tema:"O Hijra para Habasha",licao:"1º e 2º Hijra"},{semana:27,trim:3,tema:"Já'far diante do Rei Najash",licao:"Discurso de Já'far; decisão de Najash"},{semana:28,trim:3,tema:"2ª A.S.",licao:"Avaliação Semestral — Semanas 25 a 27",tipo:"as2"},{semana:29,trim:3,tema:"O Islam de Hamza e Umar R.A.",licao:"Islam de Hamza; Islam de Umar R.A."},{semana:30,trim:3,tema:"A.T.3 + Exame Anual",licao:"Avaliação final e Exame Anual",tipo:"ea"}];
 const PLANO_AQIDAH_ANO1=[{semana:1,trim:1,tema:"Introdução ao Aquida",licao:"O que é Aquida; fontes"},{semana:2,trim:1,tema:"Conceitos Básicos do Iman",licao:"Definição de Iman; 3 divisões"},{semana:3,trim:1,tema:"A Importância do Iman e os 3 Princípios",licao:"O coração no Iman; perguntas do Qabr"},{semana:4,trim:1,tema:"1ª A.S.",licao:"Avaliação Semestral — Semanas 1 a 3",tipo:"as1"},{semana:5,trim:1,tema:"Tauhid — Definição e Divisões",licao:"O que é Tauhid; 3 divisões"},{semana:6,trim:1,tema:"Tauhid Al-Rububiya — Al-Khaliq",licao:"Allah como criador"},{semana:7,trim:1,tema:"Tauhid Al-Rububiya — Al-Razzaq e Al-Mudabbir",licao:"Allah como sustentador e controlador"},{semana:8,trim:1,tema:"2ª A.S.",licao:"Avaliação Semestral — Semanas 5 a 7",tipo:"as2"},{semana:9,trim:1,tema:"Tauhid Al-Uluhiya — Definição e Fundamentos",licao:"Definição de Uluhiya; Taghut"},{semana:10,trim:1,tema:"A.T.1",licao:"Avaliação Trimestral — 1º Trimestre",tipo:"at"},{semana:11,trim:2,tema:"Ibrahim A.S. e o Tauhid Al-Uluhiya",licao:"Ibrahim A.S. e os astros; ídolos"},{semana:12,trim:2,tema:"O que é Ibadah — Tipos Externos",licao:"Definição; Al-Ikhlass e Al-Mutaba'a"},{semana:13,trim:2,tema:"Ibadah Interno e Conexão Rububiya-Uluhiya",licao:"Mahabba, Tawakkul, Sabr, Shukr"},{semana:14,trim:2,tema:"1ª A.S.",licao:"Avaliação Semestral — Semanas 11 a 13",tipo:"as1"},{semana:15,trim:2,tema:"Asmaa wa Sifaat — Princípios 1 e 2",licao:"Al-Ithbaat e Al-Nafy"},{semana:16,trim:2,tema:"Asmaa wa Sifaat — Princípios 3, 4 e 5",licao:"Adam Takyif, Adam Tashbih, Al-Tawaquf"},{semana:17,trim:2,tema:"Crença no Profeta ﷺ — Parte 1",licao:"As 6 crenças obrigatórias: primeiras 4"},{semana:18,trim:2,tema:"2ª A.S.",licao:"Avaliação Semestral — Semanas 15 a 17",tipo:"as2"},{semana:19,trim:2,tema:"Crença no Profeta ﷺ — Parte 2 e 5 Direitos",licao:"5ª e 6ª crenças; os 5 direitos"},{semana:20,trim:2,tema:"A.T.2",licao:"Avaliação Trimestral — 2º Trimestre",tipo:"at"},{semana:21,trim:3,tema:"Al-Shafa'tul Kubraa — Parte 1",licao:"O dia de Qiyamah; os 5 Profetas"},{semana:22,trim:3,tema:"Al-Shafa'tul Kubraa — O Profeta ﷺ Intercede",licao:"As 4 intercessões perante Allah"},{semana:23,trim:3,tema:"O Terceiro Princípio: O Islam",licao:"Definição de Islam; Suratul Imraan"},{semana:24,trim:3,tema:"1ª A.S.",licao:"Avaliação Semestral — Semanas 21 a 23",tipo:"as1"},{semana:25,trim:3,tema:"Os Pilares do Islam — Shahada e Salah",licao:"5 pilares; Shahadatayn; Salah"},{semana:26,trim:3,tema:"Os Pilares do Islam — Zakat, Jejum e Hajj",licao:"Zakat, Jejum e Hajj"},{semana:27,trim:3,tema:"Condições do Shahada — Ilm e Yaqin",licao:"A chave do Jannah; Ilm e Yaqin"},{semana:28,trim:3,tema:"2ª A.S.",licao:"Avaliação Semestral — Semanas 25 a 27",tipo:"as2"},{semana:29,trim:3,tema:"Condições do Shahada — Qabul a Mahabba",licao:"3ª a 7ª condições"},{semana:30,trim:3,tema:"A.T.3 + Exame Anual",licao:"Avaliação final e Exame Anual",tipo:"ea"}];
 const TIPOS_AULA=[{id:"aula",label:"Aula Normal"},{id:"as1",label:"1ª Avaliação Semestral (A.S.)"},{id:"as2",label:"2ª Avaliação Semestral (A.S.)"},{id:"at",label:"Avaliação Trimestral (A.T.)"},{id:"ea",label:"Exame Anual (E.A.)"}];
-function getPlano(sid){return({fiqh_b1:PLANO_FIQH_ANO1,seerah_b1:PLANO_SEERAH_ANO1,aqidah_b1:PLANO_AQIDAH_ANO1}[sid]||[]);}
+
+// ── Planos Temáticos — Nível Básico 2º Ano ───────────────────────────────────
+const PLANO_FIQH_ANO2 = [
+  {semana:1,  trim:1, tema:"Introdução ao Kitab Salah",                       licao:"Definição do Salah; como foi prescrito em Al-Israa wa Al-Mi'raaj; o Hadith dos 50 Salats"},
+  {semana:2,  trim:1, tema:"A Importância do Salah",                          licao:"O Salah diferencia muçulmano do não-muçulmano; abandono do Salah; virtudes"},
+  {semana:3,  trim:1, tema:"Os 5 Salats — Zuhr e Assr",                       licao:"Os 5 nomes e significados; horários; Waqtul Fadhila, Waqtu Jawaz e Waqtu Makruh"},
+  {semana:4,  trim:1, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 1 a 3", tipo:"as1"},
+  {semana:5,  trim:1, tema:"Os 5 Salats — Maghrib, Ishaa e Fajr",             licao:"Horários detalhados do Maghrib, Ishaa e Fajr; períodos e evidências"},
+  {semana:6,  trim:1, tema:"Salats Sunnats — Rawatib e Nawafil",              licao:"Rawatib de cada Salah; Rawatib Al-Mu'akkada; regra dos Sunnats dois a dois"},
+  {semana:7,  trim:1, tema:"Qadha'a e Horas Proibidas",                       licao:"Definição do Qadha'a; regras; horas proibidas e excepções"},
+  {semana:8,  trim:1, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 5 a 7", tipo:"as2"},
+  {semana:9,  trim:1, tema:"Condições do Salah — Parte 1",                    licao:"6 condições: Niyat, Tahaara, Sitr Al-Awrah; Awrah do homem e da mulher"},
+  {semana:10, trim:1, tema:"A.T.1",                                            licao:"Avaliação Trimestral — 1º Trimestre", tipo:"at"},
+  {semana:11, trim:2, tema:"Condições do Salah — Parte 2",                    licao:"Makanun Taahir, Dukhul Al-Waqt, Istiqbal Al-Qibla; como determinar o Qibla"},
+  {semana:12, trim:2, tema:"Pilares do Salah — Parte 1 (1º ao 3º)",           licao:"Qiyaam, Takbiratul Ihraam, Suratul Fatiha com Basmala"},
+  {semana:13, trim:2, tema:"Pilares do Salah — Parte 2 (4º ao 7º)",           licao:"Ruku, I'tidaal, Sijda (7 partes no chão), Julus bayna Sijdatayn"},
+  {semana:14, trim:2, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 11 a 13", tipo:"as1"},
+  {semana:15, trim:2, tema:"Pilares do Salah — Parte 3 (8º ao 11º)",          licao:"Julus Al-Akhir, Tashahud, Durud Sharif, Taslim"},
+  {semana:16, trim:2, tema:"Pilares do Salah — Parte 4 (12º e 13º) + Wajib", licao:"Tama'nina, Tartib; o Hadith do errante; Wajibat — Tashahud Al-Awwal"},
+  {semana:17, trim:2, tema:"Sunnats do Salah — Parte 1 (1º ao 5º)",           licao:"Raf'ul Yadayn, Wadh'ul Yadayn, Duaa Iftitaah, Al-Isti'adha, Jahr wa Israr"},
+  {semana:18, trim:2, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 15 a 17", tipo:"as2"},
+  {semana:19, trim:2, tema:"Sunnats do Salah — Parte 2 (6º ao 10º)",          licao:"Ta'min, Surah Thaani, Tasbih no Ruku e Sijda, mãos nas coxas no Julus"},
+  {semana:20, trim:2, tema:"A.T.2",                                            licao:"Avaliação Trimestral — 2º Trimestre", tipo:"at"},
+  {semana:21, trim:3, tema:"Sunnats do Salah — Parte 3 (11º ao 14º)",         licao:"Iftirash, Tawarruq, Taslim Thani, Khaf Al-Basr"},
+  {semana:22, trim:3, tema:"Revisão Integrada — Condições e Pilares",         licao:"6 condições e 13 pilares em sequência; prática do Salah completo"},
+  {semana:23, trim:3, tema:"Revisão Integrada — Sunnats e Wajibat",           licao:"14 Sunnats; diferença prática entre Rukn, Waajib e Sunnah"},
+  {semana:24, trim:3, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 21 a 23", tipo:"as1"},
+  {semana:25, trim:3, tema:"O Salah na Prática — Fajr e Zuhr",               licao:"Passo a passo do Salatul Fajr (2 Rakats) e Salatul Zuhr (4 Rakats)"},
+  {semana:26, trim:3, tema:"O Salah na Prática — Assr e Maghrib",            licao:"Prática do Assr (4 Rakats) e Maghrib (3 Rakats); Tawarruq e Jahr/Israr"},
+  {semana:27, trim:3, tema:"O Salah na Prática — Ishaa e Witr",              licao:"Prática do Ishaa (4 Rakats) e Witr (3 Rakats); diferenças de recitação"},
+  {semana:28, trim:3, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — 5 Salats + Witr", tipo:"as2"},
+  {semana:29, trim:3, tema:"Revisão Geral do Ano",                             licao:"Horários, Sunnats Rawatib, Qadha'a, 6 condições, 13 pilares, 14 Sunnats"},
+  {semana:30, trim:3, tema:"A.T.3 + Exame Anual",                             licao:"Avaliação final — todo o Kitab Salah 1", tipo:"ea"},
+];
+
+const PLANO_SEERAH_ANO2 = [
+  {semana:1,  trim:1, tema:"Estratégias Alternativas de Perseguição",          licao:"Proposta de Utba bin Rabi'a; Abu Jahl tenta matar o Nabi ﷺ; Jibra'il em forma de touro"},
+  {semana:2,  trim:1, tema:"Proposta de Meio-Termo e Boicote Geral",          licao:"Suratul Kafirun; Boicote em Shu'ab Abi Taalib; fim milagroso do acordo"},
+  {semana:3,  trim:1, tema:"Aamul Huzn — Ano da Tristeza",                    licao:"Morte de Abu Taalib e Khadija R.A.; casamento com Sawdah"},
+  {semana:4,  trim:1, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 1 a 3", tipo:"as1"},
+  {semana:5,  trim:1, tema:"A Viagem para Ta'if",                              licao:"Rejeição dos três irmãos; corredor da morte; Du'aa do Nabi ﷺ no pomar"},
+  {semana:6,  trim:1, tema:"Addass, o Anjo das Montanhas e os Jinns",         licao:"Addass aceita o Islam; anjo das montanhas; os Jinns ouvem o Qur'an"},
+  {semana:7,  trim:1, tema:"Al-Israa wa Al-Mi'raaj — Parte 1",               licao:"O Islam de Rukána; Al-Israa — Burák, Baitul Maqdis, Salah com os Profetas"},
+  {semana:8,  trim:1, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 5 a 7", tipo:"as2"},
+  {semana:9,  trim:1, tema:"Al-Mi'raaj — A Ascensão",                         licao:"Os 7 céus; Al-Baitul Al-Ma'mur; 50 Salats reduzidos para 5; Abu Bakr Siddique"},
+  {semana:10, trim:1, tema:"A.T.1",                                            licao:"Avaliação Trimestral — 1º Trimestre", tipo:"at"},
+  {semana:11, trim:2, tema:"Os Primeiros Muçulmanos Fora de Makkah",          licao:"Suwaid bin Samit; Tufail bin Amr Al-Dawsi; Dhimad Al-Azdi"},
+  {semana:12, trim:2, tema:"As Tribos e os Bay'ats de Aqaba",                 licao:"Banu Shaybán e Banu Amir; os 6 jovens de Yathrib; 1º Bay'at"},
+  {semana:13, trim:2, tema:"Mus'ab bin Umayr — O Primeiro Embaixador",        licao:"Mus'ab em Yathrib; conversão de Usayd e Sa'd; 1º Jumu'ah do Islam"},
+  {semana:14, trim:2, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 11 a 13", tipo:"as1"},
+  {semana:15, trim:2, tema:"O 2º Bay'at de Aqaba e Hijra dos Sahabas",        licao:"75 muçulmanos; 5 termos; 12 líderes; Suhayb Ar-Rumi"},
+  {semana:16, trim:2, tema:"O Acordo de Dar An-Nadwa e o Hijra do Nabi ﷺ",   licao:"Parlamento de Quraysh; Ali na cama; o Nabi ﷺ passa invisível (Surat Yasin)"},
+  {semana:17, trim:2, tema:"Ghar At-Thawr e a Viagem para Madinah",           licao:"Três noites em Ghar At-Thawr; Suraqata; Umm Ma'bad e o milagre do leite"},
+  {semana:18, trim:2, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 15 a 17", tipo:"as2"},
+  {semana:19, trim:2, tema:"A Chegada em Madinah — Um Novo Começo",           licao:"Masjid Qubá; camelo do Nabi ﷺ; Abu Ayub Al-Ansaari; Muhajiroon vs Ansaar"},
+  {semana:20, trim:2, tema:"A.T.2",                                            licao:"Avaliação Trimestral — 2º Trimestre", tipo:"at"},
+  {semana:21, trim:3, tema:"A Construção da Sociedade Islâmica — Parte 1",    licao:"3 povos de Madinah; Islam de Abdullah bin Salaam; Masjid Nabawi; Al-Muwaakha"},
+  {semana:22, trim:3, tema:"A Construção da Sociedade Islâmica — Parte 2",    licao:"Pacto com os Judeus; mudança do Qibla para a Ka'ba (Surat Al-Baqara)"},
+  {semana:23, trim:3, tema:"O Motivo da Batalha de Badr e a Caravana",        licao:"Caravana de Abu Sufyan; exército muçulmano de 313; Tal'ha e Sa'id"},
+  {semana:24, trim:3, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 21 a 23", tipo:"as1"},
+  {semana:25, trim:3, tema:"A Preparação da Batalha de Badr",                 licao:"Dham-Dham; sonho de Átikah; Abu Jahl recusa recuar; Miqdad e Sa'd bin Mu'adh"},
+  {semana:26, trim:3, tema:"A Batalha de Badr — Parte 1",                     licao:"Al-Hubab bin Mundhir; chuva bênção; duelo: Ali, Hamza e Ubayda"},
+  {semana:27, trim:3, tema:"A Batalha de Badr — Parte 2",                     licao:"Du'aa do Nabi ﷺ; os anjos; areia nos rostos; Ibliss foge"},
+  {semana:28, trim:3, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 25 a 27", tipo:"as2"},
+  {semana:29, trim:3, tema:"O Fim de Badr e os seus Resultados",              licao:"Morte de Abu Jahl; 14 Shahids; 70 mortos e 70 capturados Mushrikeen"},
+  {semana:30, trim:3, tema:"A.T.3 + Exame Anual",                             licao:"Avaliação final — toda a Seerah do 2º Ano (Aamul Huzn ao Badr)", tipo:"ea"},
+];
+
+const PLANO_AQIDAH_ANO2 = [
+  {semana:1,  trim:1, tema:"Cap.1 — Tauhid: O Objectivo da Criação",          licao:"Surat Adh-Dhariyat 56; todos os Profetas ensinaram o Tauhid; ordem de Birr Al-Walidayn"},
+  {semana:2,  trim:1, tema:"Cap.1 — Mensagem do Islam e Direitos Mútuos",     licao:"Surat Al-An'am 151-153; direito de Allah e dos servos (Hadith de Mu'adh — Muslim)"},
+  {semana:3,  trim:1, tema:"Cap.2 — O Tauhid Protege e Garante o Jannah",     licao:"Surat Al-An'am 82; Hadith de Ubadah; 2 tipos de entrada no Jannah"},
+  {semana:4,  trim:1, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 1 a 3", tipo:"as1"},
+  {semana:5,  trim:1, tema:"Cap.2 — O Tauhid Protege do Fogo e Perdoa Pecados",licao:"Hadith de Itban; Hadith Qudsi de Anas — mensagem de esperança"},
+  {semana:6,  trim:1, tema:"Cap.3 — Qualidades e Recompensa do Tauhid Completo",licao:"4 qualidades de Ibrahim A.S.; 3 sinais do Muwahid; os 70.000 sem ajuste"},
+  {semana:7,  trim:1, tema:"Cap.4 — O Perigo do Shirk",                       licao:"Shirk imperdoável (An-Nisaa 116); maior injustiça; impede o Jannah; Riyaa"},
+  {semana:8,  trim:1, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 5 a 7", tipo:"as2"},
+  {semana:9,  trim:1, tema:"Cap.5 — O Da'wah para o Tauhid",                  licao:"Da'wah é dever; caminho dos Profetas; começa pelo Tauhid (Hadith de Mu'adh no Iémen)"},
+  {semana:10, trim:1, tema:"A.T.1",                                            licao:"Avaliação Trimestral — 1º Trimestre", tipo:"at"},
+  {semana:11, trim:2, tema:"Cap.6 — Tafsir do Tauhid e do Shahada",           licao:"4 partes do Shahada; Surat Az-Zukhruf 26-27; Hadith de Tariq — Muslim"},
+  {semana:12, trim:2, tema:"Cap.7 — Proibição dos Amuletos — Parte 1",        licao:"Só Allah protege; proibição directa dos amuletos (Hadith de Imraan e Uqbah)"},
+  {semana:13, trim:2, tema:"Cap.7 — Proibição dos Amuletos — Parte 2",        licao:"At-Tamimah e Al-Wad'ah; posições sobre o Ta'wiz; conclusão de Ibn Mas'ud"},
+  {semana:14, trim:2, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 11 a 13", tipo:"as1"},
+  {semana:15, trim:2, tema:"Cap.8 — O Ruqya: Permitido e Proibido",           licao:"Definição; 3 condições do Ruqya permitido; Ruqya do Nabi ﷺ"},
+  {semana:16, trim:2, tema:"Cap.8 — Tiwala + Cap.9 — Tabarruk (Parte 1)",    licao:"Tiwala: proibição e Shirk; Barakah Dhaatiyya — Profetas, Zamzam, mel"},
+  {semana:17, trim:2, tema:"Cap.9 — O Tabarruk (Parte 2)",                    licao:"Barakah Diniyya: Ramadan, Laylatul Qadr; Tabarruk Mashruu' e Mamnu'"},
+  {semana:18, trim:2, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 15 a 17", tipo:"as2"},
+  {semana:19, trim:2, tema:"Cap.9 — Tabarruk com o Nabi ﷺ e Santos",         licao:"3 evidências do Tabarruk com o Nabi ﷺ; 4 razões da impossibilidade actual"},
+  {semana:20, trim:2, tema:"A.T.2",                                            licao:"Avaliação Trimestral — 2º Trimestre", tipo:"at"},
+  {semana:21, trim:3, tema:"Cap.10 — Dhab'h: Sacrifício Somente para Allah",  licao:"3 regras do Dhab'h; Dhab'h Shirki; história da mosca de Salmán Al-Fárisi"},
+  {semana:22, trim:3, tema:"Cap.11 — Proibição de Adorar em Lugares de Shirk",licao:"Lugares de ídolos e Eid dos Kuffar; como purificar um local"},
+  {semana:23, trim:3, tema:"Cap.12 — Juramentos e Promessas",                 licao:"Jurar só por Allah; formas proibidas; 4 tipos de Nadhr"},
+  {semana:24, trim:3, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 21 a 23", tipo:"as1"},
+  {semana:25, trim:3, tema:"Cap.12/13 — O Du'aa Somente para Allah — Parte 1",licao:"Du'aa é essência do Ibadah; Surat Al-A'raaf 55; Du'aa a outros é Shirk"},
+  {semana:26, trim:3, tema:"Cap.13 — O Du'aa Somente para Allah — Parte 2",   licao:"5 formas como os Mushrikeen cometiam Shirk no Du'aa; consequências"},
+  {semana:27, trim:3, tema:"Cap.13 — Istighaatha, Isti'ana e Isti'adha",      licao:"3 formas de pedir ajuda; categorias proibidas; 3 razões corânicas"},
+  {semana:28, trim:3, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 25 a 27", tipo:"as2"},
+  {semana:29, trim:3, tema:"Cap.13 — A Origem do Shirk e Revisão Geral",      licao:"Ibliss e as estátuas; Nabi Nuh; erro dos árabes; revisão dos 13 capítulos"},
+  {semana:30, trim:3, tema:"A.T.3 + Exame Anual",                             licao:"Avaliação final — todos os 13 capítulos da Aquida – Tauhid Al-Ibadah", tipo:"ea"},
+];
+
+// ── Planos Temáticos — Nível Básico 3º Ano ───────────────────────────────────
+const PLANO_FIQH_ANO3 = [
+  {semana:1,  trim:1, tema:"Anuladores do Salah — Parte 1",                   licao:"Os 10 anuladores; fala intencional, acções excessivas, Hadath"},
+  {semana:2,  trim:1, tema:"Anuladores do Salah — Parte 2",                   licao:"Impureza, Awrah, mudança de Niyat, virar para fora do Qibla, Kufr"},
+  {semana:3,  trim:1, tema:"Sijdatu Sah'w — O Sijda de Compensação",          licao:"4 situações: recordar dentro/fora do Salah em pouco/muito tempo"},
+  {semana:4,  trim:1, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 1 a 3", tipo:"as1"},
+  {semana:5,  trim:1, tema:"Sijdatu Sah'w em caso de Dúvida",                 licao:"Dúvida sobre Rakats; basear no que tem certeza; Hadith de Ibn Mas'ud"},
+  {semana:6,  trim:1, tema:"Salatul Jama'a — Obrigatoriedade e Mulheres",     licao:"3 posições: Fardh Ayn, Sunnah Mu'akkadah, Fardh Kifaya; mulheres no Jama'a"},
+  {semana:7,  trim:1, tema:"Regras do Jama'a — Saff e Imam",                  licao:"Condições de validade; regras do Saff; condições para ser Imam"},
+  {semana:8,  trim:1, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 5 a 7", tipo:"as2"},
+  {semana:9,  trim:1, tema:"Salatul Musafir — O Salah do Viajante",           licao:"Qasr: encurtar de 4 para 2 Rakats; condições; Jam'a Taqdim e Ta'khir"},
+  {semana:10, trim:1, tema:"A.T.1",                                            licao:"Avaliação Trimestral — 1º Trimestre", tipo:"at"},
+  {semana:11, trim:2, tema:"Salatul Jumu'a — Condições de Obrigatoriedade",   licao:"7 condições; quem é dispensado; evidência corânica principal"},
+  {semana:12, trim:2, tema:"Salatul Jumu'a — Validade, Pilares e Khutba",     licao:"Condições de validade; 2 Khutbas; pilares do Jumu'a"},
+  {semana:13, trim:2, tema:"Salatul Jumu'a — Sunnats e Virtudes do Dia",      licao:"Sunnats do Jumu'a; virtudes; hora especial de Du'aa"},
+  {semana:14, trim:2, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 11 a 13", tipo:"as1"},
+  {semana:15, trim:2, tema:"Salatul Eid e as suas Regras",                    licao:"2 Rakats com 12 Takbirs; hora do Eid; Sunnats do Eid"},
+  {semana:16, trim:2, tema:"Salatul Eclipse e Salatul Istisqa",               licao:"Kussuf e Khussuf; 2 Rukus por Rakat; Istisqa: pedir chuva"},
+  {semana:17, trim:2, tema:"Qiyamul Layl e Salatul Tarawih",                  licao:"Virtudes do Qiyamul Layl; distinção de Tarawih; fases históricas"},
+  {semana:18, trim:2, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 15 a 17", tipo:"as2"},
+  {semana:19, trim:2, tema:"Salatul Witr e Tahiyatul Masjid",                 licao:"3 formas do Witr; Du'aa Qunut; Tahiyatul Masjid: obrigação e excepções"},
+  {semana:20, trim:2, tema:"A.T.2",                                            licao:"Avaliação Trimestral — 2º Trimestre", tipo:"at"},
+  {semana:21, trim:3, tema:"Kitab Al-Jana'iz — A Morte e Como se Preparar",   licao:"A morte é inevitável; viver em obediência; aceitar o decreto de Allah"},
+  {semana:22, trim:3, tema:"Regras do Moribundo (Muh'tadhir)",                licao:"Talqin; voltar ao Qibla; fechar os olhos; Du'aas de condolências"},
+  {semana:23, trim:3, tema:"Lavagem (Ghusl) e Kafan do Mayit",               licao:"Processo de lavagem; uso de Sidr e cânfora; Kafan do homem (3) e mulher (5)"},
+  {semana:24, trim:3, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 21 a 23", tipo:"as1"},
+  {semana:25, trim:3, tema:"Salatul Janaza",                                   licao:"4 Takbirs; Du'aas específicos; Salatul Gha'ib (em absentia)"},
+  {semana:26, trim:3, tema:"Transporte e Acompanhamento do Janaza",           licao:"Carregar o Mayit; casos especiais: Kafir, mar, Shahid, outra cidade"},
+  {semana:27, trim:3, tema:"O Dafan (Enterro) — Regras Completas",            licao:"Lahd vs. Shaqq; colocar o Mayit voltado ao Qibla; 3 punhados de terra"},
+  {semana:28, trim:3, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 25 a 27", tipo:"as2"},
+  {semana:29, trim:3, tema:"Regras do Cemitério e Campas",                    licao:"Acções recomendadas e proibidas no cemitério; Du'aa da visita"},
+  {semana:30, trim:3, tema:"A.T.3 + Exame Anual",                             licao:"Avaliação final — Kitab Salah 2 + Kitab Al-Jana'iz completo", tipo:"ea"},
+];
+
+const PLANO_SEERAH_ANO3 = [
+  {semana:1,  trim:1, tema:"Os Inimigos do Islam Após Badr",                  licao:"4 grupos: Quraysh, Judeus, Munafiqin, Beduínos; Ghazwa de Banu Sulaym"},
+  {semana:2,  trim:1, tema:"Conspiração de Umayr ibn Wahb e Banu Qaynuqa",   licao:"A espada envenenada e conversão de Umayr; quebra do tratado e expulsão"},
+  {semana:3,  trim:1, tema:"Motivo e Preparação da Batalha de Uhud",          licao:"Humilhação de Badr; debate: permanecer vs. sair; decisão do Profeta ﷺ"},
+  {semana:4,  trim:1, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 1 a 3", tipo:"as1"},
+  {semana:5,  trim:1, tema:"A Batalha de Uhud — Parte 1",                     licao:"Traição de Ibn Ubayy; os 50 arqueiros; vitória inicial; erro dos arqueiros"},
+  {semana:6,  trim:1, tema:"A Batalha de Uhud — Parte 2",                     licao:"O Profeta ﷺ ferido; martyrdom de Mus'ab; mutilação de Hamza por Hind"},
+  {semana:7,  trim:1, tema:"Após Uhud — Estado de Emergência e Lições",      licao:"Hamra al-Asad; Badr Segunda; 3 lições: obediência, sabr, confiança em Allah"},
+  {semana:8,  trim:1, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 5 a 7", tipo:"as2"},
+  {semana:9,  trim:1, tema:"Banu Nadir, Traições e Bi'r Ma'unah",             licao:"Tentativa de matar o Profeta ﷺ; expulsão para Khaybar; 70 leitores assassinados"},
+  {semana:10, trim:1, tema:"A.T.1",                                            licao:"Avaliação Trimestral — 1º Trimestre", tipo:"at"},
+  {semana:11, trim:2, tema:"Al-Ahzab (Khandaq) — Parte 1",                   licao:"Coligação de 10.000; proposta de Salman; 36 dias de escavação; milagres"},
+  {semana:12, trim:2, tema:"Al-Ahzab (Khandaq) — Parte 2",                   licao:"Nu'aym ibn Mas'ud semeia desconfiança; Hudhayfa como espião; vitória sem batalha"},
+  {semana:13, trim:2, tema:"A Terceira Traição — Banu Quraydhá",              licao:"Cerco de 25 dias; 3 propostas de Ka'b; julgamento de Sa'd ibn Mu'adh"},
+  {semana:14, trim:2, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 11 a 13", tipo:"as1"},
+  {semana:15, trim:2, tema:"Ghazwa al-Muraysi e o Incidente do Ifk",         licao:"A frase de Ibn Ubayy; calúnia contra A'isha R.A.; revelação de Surat An-Nur"},
+  {semana:16, trim:2, tema:"O Tratado de Hudaybiyya — Parte 1",              licao:"1.400 para Umrah; Khalid bloqueia; Bay'atu Ridwan debaixo da árvore"},
+  {semana:17, trim:2, tema:"O Tratado de Hudaybiyya — Parte 2",              licao:"4 cláusulas; caso de Abu Jandal; Surat Al-Fath; 3 vantagens do tratado"},
+  {semana:18, trim:2, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 15 a 17", tipo:"as2"},
+  {semana:19, trim:2, tema:"As Cartas aos Reis e Ghazwatu Khaybar",           licao:"Cartas a Heráclito, Cosroes, Najashi, Muqawqis; conquista de Khaybar fortaleza a fortaleza"},
+  {semana:20, trim:2, tema:"A.T.2",                                            licao:"Avaliação Trimestral — 2º Trimestre", tipo:"at"},
+  {semana:21, trim:3, tema:"Umratul Qadha'a e o Islam dos Heróis",            licao:"2.000 muçulmanos em Makkah; Islam de Khalid ibn al-Walid e Amr ibn al-As"},
+  {semana:22, trim:3, tema:"A Batalha de Mu'tah — Parte 1",                  licao:"3 comandantes; conselho em Ma'n; martyrdom de Zayd ibn Haritha"},
+  {semana:23, trim:3, tema:"A Batalha de Mu'tah — Parte 2",                  licao:"Jafar Al-Tayyar; martyrdom de Abdullah ibn Rawahah; 9 espadas de Khalid"},
+  {semana:24, trim:3, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 21 a 23", tipo:"as1"},
+  {semana:25, trim:3, tema:"O Motivo da Conquista de Makkah",                 licao:"Banu Bakr ataca Khuza'a; Abu Sufyan recusado; Ali aconselha Abu Sufyan"},
+  {semana:26, trim:3, tema:"A Conquista de Makkah — Preparação e Marcha",    licao:"Sigilo total; carta de Hatib interceptada; Abu Sufyan vê o exército e aceita Islam"},
+  {semana:27, trim:3, tema:"A Conquista de Makkah — A Entrada e o Perdão",   licao:"4 flancos; destruição dos 360 ídolos; perdão geral 'Ithhabuu fa antum at-tulaqaa'"},
+  {semana:28, trim:3, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 25 a 27", tipo:"as2"},
+  {semana:29, trim:3, tema:"Após a Conquista — Islamização e Lições",         licao:"Conversão de Ikrimah e Safwan; 3 lições da Conquista; revisão da Seerah do 3º Ano"},
+  {semana:30, trim:3, tema:"A.T.3 + Exame Anual",                             licao:"Avaliação final — Seerah do 3º Ano: de Badr à Conquista de Makkah", tipo:"ea"},
+];
+
+const PLANO_AQIDAH_ANO3 = [
+  {semana:1,  trim:1, tema:"Cap.1 — O Shafa'a no Dunyá",                      licao:"Definição; 3 condições de validade; Shafa'a proibido — pedir a mortos e ausentes"},
+  {semana:2,  trim:1, tema:"Cap.1 — O Shafa'a no Dia de Qiyamat",             licao:"Pertence a Allah; 2 condições; tipos de Shafa'a no Qiyamat"},
+  {semana:3,  trim:1, tema:"Cap.2 — A Hidayah pertence somente a Allah",      licao:"2 tipos: Dalala/Irshad e Hidayatu Tawfiq; Surat Al-Qasas 56"},
+  {semana:4,  trim:1, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 1 a 3", tipo:"as1"},
+  {semana:5,  trim:1, tema:"Cap.3 — O Exagero (Ghuluw) nos Awliya",           licao:"Definição; 4 tipos; 3 graus; Ghuluw como causa histórica do Shirk"},
+  {semana:6,  trim:1, tema:"Cap.4 — Advertência contra Adorar junto dos Túmulos",licao:"Definição dos Awliya; 3 posições das pessoas; advertências do Profeta ﷺ"},
+  {semana:7,  trim:1, tema:"Cap.5 — Os Túmulos Transformam-se em Ídolos",    licao:"O efeito do Ghuluw; povo de Nuh e as estátuas; Cap.6: esforço do Profeta ﷺ"},
+  {semana:8,  trim:1, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 5 a 7", tipo:"as2"},
+  {semana:9,  trim:1, tema:"Cap.7 — Membros deste Ummah Irão Adorar Ídolos",  licao:"Hadith dos 73 grupos; causas do desvio; o grupo que permanece firme"},
+  {semana:10, trim:1, tema:"A.T.1",                                            licao:"Avaliação Trimestral — 1º Trimestre", tipo:"at"},
+  {semana:11, trim:2, tema:"Cap.8 — O Sih'r: Definição e Realidade",          licao:"Por que o Sih'r é Shirk; realidade do Sih'r; aprender Sih'r é Kufr (Al-Baqara 102)"},
+  {semana:12, trim:2, tema:"Cap.8 — Tipos de Sih'r, Regras e Tratamento",    licao:"4 tipos; pena do praticante; tratamento: Ruqya, Surat Al-Falaq e An-Nas"},
+  {semana:13, trim:2, tema:"Cap.9 — A Proibição de Conhecer o Ghayb",         licao:"Ghayb absoluto vs. relativo; Al-Kahanah, Al-Tanjim, Ar-Raml; formas modernas"},
+  {semana:14, trim:2, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 11 a 13", tipo:"as1"},
+  {semana:15, trim:2, tema:"Cap.10 — Amar Allah e o Seu Mensageiro",          licao:"Al-Mahabba como fundamento; 3 categorias de amor; Surat At-Tawbah 24"},
+  {semana:16, trim:2, tema:"Cap.11 — O Tawakkul: Confiança em Allah",         licao:"Equilíbrio com Asbab; Surat At-Talaq 3; Hadith dos 70.000 — Tawakkul completo"},
+  {semana:17, trim:2, tema:"Cap.12 — O Taqwa: Consciência do Coração",        licao:"Definição de Ibn al-Qayyim; Taqwa verdadeiro vs. aparente; 3 meios de obter"},
+  {semana:18, trim:2, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 15 a 17", tipo:"as2"},
+  {semana:19, trim:2, tema:"Cap.13 — O Khawf e o Raja: Medo e Esperança",    licao:"Definições; equilíbrio obrigatório; perigos do desequilíbrio em cada direcção"},
+  {semana:20, trim:2, tema:"A.T.2",                                            licao:"Avaliação Trimestral — 2º Trimestre", tipo:"at"},
+  {semana:21, trim:3, tema:"Cap.14 — O Sabr: Paciência perante o Decreto",   licao:"3 tipos de Sabr; Surat Al-Baqara 155-157; testes apagam pecados"},
+  {semana:22, trim:3, tema:"Cap.15 — Proibição de Seguir na Desobediência",   licao:"Obediência condicional; desvio dos povos passados; 'não há obediência à criatura'"},
+  {semana:23, trim:3, tema:"Cap.16 — O Bid'ah e os seus Perigos",             licao:"Definição; Surat Al-Ma'idah 3; Hadith de Irbadh; Bid'ah Haqiqiyya e Idafiyya"},
+  {semana:24, trim:3, tema:"1ª A.S.",                                          licao:"Avaliação Semestral — Semanas 21 a 23", tipo:"as1"},
+  {semana:25, trim:3, tema:"Cap.17 — O Grupo Salvo",                          licao:"Hadith dos 73 grupos; critério de método; os Ghuraba; as 3 melhores gerações"},
+  {semana:26, trim:3, tema:"Integração: Pilares do Tauhid Al-Ibadah — Parte 1",licao:"Cap.1–9: Shafa'a → Hidayah → Ghuluw → Awliya → Sih'r e Ghayb"},
+  {semana:27, trim:3, tema:"Integração: Pilares do Tauhid Al-Ibadah — Parte 2",licao:"Cap.10–17: Al-Mahabba → Tawakkul → Taqwa → Khawf/Raja → Sabr → Grupo Salvo"},
+  {semana:28, trim:3, tema:"2ª A.S.",                                          licao:"Avaliação Semestral — Semanas 25 a 27", tipo:"as2"},
+  {semana:29, trim:3, tema:"Revisão Geral — Todos os 17 Capítulos",           licao:"Revisão cronológica; definições e evidências; exercícios de casos práticos"},
+  {semana:30, trim:3, tema:"A.T.3 + Exame Anual",                             licao:"Avaliação final — todos os 17 capítulos da Aquida – Tauhid Al-Ibadah 2", tipo:"ea"},
+];
+
+function getPlano(sid){
+  const MAP={
+    fiqh_b1:PLANO_FIQH_ANO1,   seerah_b1:PLANO_SEERAH_ANO1,   aqidah_b1:PLANO_AQIDAH_ANO1,
+    fiqh_b2:PLANO_FIQH_ANO2,   seerah_b2:PLANO_SEERAH_ANO2,   aqidah_b2:PLANO_AQIDAH_ANO2,
+    fiqh_b3:PLANO_FIQH_ANO3,   seerah_b3:PLANO_SEERAH_ANO3,   aqidah_b3:PLANO_AQIDAH_ANO3,
+  };
+  return MAP[sid]||[];
+}
 const MADRASSA_LEVELS = ["1ª Parte","2ª Parte","Amma","Qur'an"];
 
 function ClassManager({ data, onSaveClasses }) {
@@ -1171,9 +1379,12 @@ function ClassManager({ data, onSaveClasses }) {
   function addClass() {
     if (!name.trim()) { setMsg({text:"Escreve o nome da turma.", type:"error"}); return; }
     const id = `cls_${Date.now()}`;
-    const autoSubjs = type==="cim" && level==="Básico 1º Ano"
-      ? [{id:"fiqh_b1",name:"Fiqh"},{id:"seerah_b1",name:"Seerah"},{id:"aqidah_b1",name:"Aqidah"}]
-      : [];
+    const AUTO_DISC = {
+      "Básico 1º Ano": [{id:"fiqh_b1",name:"Fiqh"},{id:"seerah_b1",name:"Seerah"},{id:"aqidah_b1",name:"Aqidah"}],
+      "Básico 2º Ano": [{id:"fiqh_b2",name:"Fiqh – Salah 1"},{id:"seerah_b2",name:"Seerah – Makkah/Badr"},{id:"aqidah_b2",name:"Aqidah – Tauhid Al-Ibadah"}],
+      "Básico 3º Ano": [{id:"fiqh_b3",name:"Fiqh – Salah 2"},{id:"seerah_b3",name:"Seerah – Badr/Conquista"},{id:"aqidah_b3",name:"Aqidah – Tauhid Al-Ibadah 2"}],
+    };
+    const autoSubjs = type==="cim" ? (AUTO_DISC[level]||[]) : [];
     onSaveClasses([...classes, {
       id, name:name.trim(), year, type, level, teacherId, schoolId,
       subjects:autoSubjs, schedule:[], createdAt:new Date().toISOString()
@@ -1269,9 +1480,9 @@ function ClassManager({ data, onSaveClasses }) {
             </select>
           </div>
         </div>
-        {type==="cim"&&level==="Básico 1º Ano"&&(
+        {type==="cim"&&["Básico 1º Ano","Básico 2º Ano","Básico 3º Ano"].includes(level)&&(
           <div style={{marginBottom:"0.75rem",padding:"0.6rem 0.9rem",background:"#EAF7F0",borderRadius:8,fontSize:"0.83rem",color:"#1A7A4A"}}>
-            ✓ <b>Fiqh, Seerah e Aqidah</b> serão criadas automaticamente com planos temáticos.
+            ✓ Disciplinas criadas automaticamente com planos temáticos para <b>{level}</b>.
           </div>
         )}
         <div style={{display:"flex", alignItems:"center", gap:"1rem"}}>
@@ -2646,9 +2857,18 @@ function PlanoAnalitico({ data, filterTeacherId, filterClass }) {
 
   return (
     <div>
-      <div style={{marginBottom:"2rem"}}>
-        <h1 style={T.h1}>Plano Analítico</h1>
-        <p style={{...T.body, marginTop:4}}>Programa anual de conteúdos por disciplina</p>
+      <div style={{marginBottom:"2rem",display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:"1rem"}}>
+        <div>
+          <h1 style={T.h1}>Plano Analítico</h1>
+          <p style={{...T.body, marginTop:4}}>Programa anual de conteúdos por disciplina</p>
+        </div>
+        {selSubj&&plano.length>0&&(
+          <Btn variant="secondary" icon="download" size="sm" onClick={()=>{
+            const rows=filtered.map(p=>`<tr style="background:${p.tipo?"#fffbeb":"inherit"}"><td style="padding:6px 10px;text-align:center;font-weight:700;font-family:monospace">${p.semana}</td><td style="padding:6px 10px;text-align:center"><span style="background:#e8f0fe;color:#1251A3;border-radius:20px;padding:2px 8px;font-size:0.75rem;font-weight:700">T${p.trim}</span></td><td style="padding:6px 10px;font-weight:${p.tipo?"700":"600"};color:${p.tipo?"#B45309":"#0A1628"}">${p.tipo?"📝 ":""}${p.tema}</td><td style="padding:6px 10px;color:#5A6A7E;font-size:0.9rem">${p.licao}</td></tr>`).join("");
+            const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Plano Analítico — ${selSubj.name}</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#0A1628}h2{color:#1251A3;margin-bottom:4px}p{color:#5A6A7E;margin:0 0 16px}table{width:100%;border-collapse:collapse}th{background:#0A1628;color:white;padding:8px 10px;text-align:left;font-size:0.8rem;text-transform:uppercase}td{border-bottom:1px solid #DDE4EE}tr:nth-child(even){background:#F4F8FE}</style></head><body><h2>C.I.M — Plano Analítico</h2><p>${selSubj.name} · ${selClass?.name||""} · ${selClass?.level||""}</p><table><thead><tr><th style="width:50px">Sem.</th><th style="width:60px">Trim.</th><th>Tema</th><th>Conteúdo / Lição</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+            const blob=new Blob([html],{type:"text/html"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`plano_${selSubj.name}_${selClass?.name||"turma"}.html`.replace(/\s+/g,"_");a.click();URL.revokeObjectURL(url);
+          }}>Download Plano</Btn>
+        )}
       </div>
 
       {relevantClasses.length===0 && <Card><p style={T.body}>Nenhum plano disponível para as tuas turmas ainda.</p></Card>}
@@ -2698,7 +2918,7 @@ function PlanoAnalitico({ data, filterTeacherId, filterClass }) {
 
         {/* Plan table */}
         {selSubj && (
-          <Card style={{padding:0, overflow:"hidden"}}>
+          <Card style={{padding:0, overflow:"hidden"}} id="plano-table">
             <table style={{width:"100%", borderCollapse:"collapse"}}>
               <thead>
                 <tr style={{background:C.navy}}>
