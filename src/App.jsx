@@ -2824,33 +2824,46 @@ function StudentGrades({ user, data }) {
 
 // ── Plano Analítico ───────────────────────────────────────────────────────────
 // Shows thematic plan filtered by class level. Visible to coord, teacher, student.
+// All known plans catalogue
+const ALL_PLANS = [
+  {id:"fiqh_b1",   name:"Fiqh – Kitab Tahaara",         level:"Básico 1º Ano"},
+  {id:"seerah_b1", name:"Seerah – Da Criação ao 1º Ano", level:"Básico 1º Ano"},
+  {id:"aqidah_b1", name:"Aqidah – Amantu Billahi",        level:"Básico 1º Ano"},
+  {id:"fiqh_b2",   name:"Fiqh – Kitab Salah 1",           level:"Básico 2º Ano"},
+  {id:"seerah_b2", name:"Seerah – Makkah para Badr",      level:"Básico 2º Ano"},
+  {id:"aqidah_b2", name:"Aqidah – Tauhid Al-Ibadah",      level:"Básico 2º Ano"},
+  {id:"fiqh_b3",   name:"Fiqh – Kitab Salah 2 + Jana'iz", level:"Básico 3º Ano"},
+  {id:"seerah_b3", name:"Seerah – Badr para a Conquista", level:"Básico 3º Ano"},
+  {id:"aqidah_b3", name:"Aqidah – Tauhid Al-Ibadah 2",    level:"Básico 3º Ano"},
+];
+
 function PlanoAnalitico({ data, filterTeacherId, filterClass }) {
   const { classes } = data;
 
-  // Determine which classes to show plans for
+  // Mode: "catalogue" shows all plans directly; "class" shows by class
+  const isCoord = !filterTeacherId && !filterClass;
+
+  // For catalogue mode (coordinator): browse by level/discipline directly
+  const [selLevel, setSelLevel] = useState("Básico 1º Ano");
+  const [selPlanId, setSelPlanId] = useState("fiqh_b1");
+  const [selTrim,   setSelTrim]   = useState(0);
+
+  // For class mode (teacher/student)
   let relevantClasses = [];
   if (filterClass) {
-    // Student: only their class
     relevantClasses = [filterClass];
   } else if (filterTeacherId) {
-    // Teacher: their classes
     relevantClasses = classes.filter(c => c.teacherId===filterTeacherId || (c.schedule||[]).some(s=>s.slotTeacherId===filterTeacherId));
-  } else {
-    // Coordinator: all classes with a known plan
-    relevantClasses = classes.filter(c => c.type==="cim" && (c.subjects||[]).some(s => getPlano(s.id).length > 0));
   }
-
   const [selClass, setSelClass] = useState(relevantClasses[0]||null);
   const [selSubj,  setSelSubj]  = useState(null);
-  const [selTrim,  setSelTrim]  = useState(0); // 0=all
 
   const subjects = selClass ? (selClass.subjects||[]).filter(s => getPlano(s.id).length > 0) : [];
-
-  // Auto-select first subject
-  useState(() => { if (subjects.length && !selSubj) setSelSubj(subjects[0]); });
-
-  const plano = selSubj ? getPlano(selSubj.id) : [];
+  const plano = isCoord ? getPlano(selPlanId) : (selSubj ? getPlano(selSubj.id) : []);
   const filtered = selTrim ? plano.filter(p => p.trim===selTrim) : plano;
+  const selSubjName = isCoord ? (ALL_PLANS.find(p=>p.id===selPlanId)?.name||"") : selSubj?.name||"";
+  const selClassName = isCoord ? selLevel : selClass?.name||"";
+  const levels = [...new Set(ALL_PLANS.map(p=>p.level))];
 
   const trimColors = ["","#1251A3","#1A6FD4","#3B8FE8"];
   const typeColors = { as1:C.amber, as2:C.amber, at:C.purple, ea:C.red };
@@ -2862,19 +2875,33 @@ function PlanoAnalitico({ data, filterTeacherId, filterClass }) {
           <h1 style={T.h1}>Plano Analítico</h1>
           <p style={{...T.body, marginTop:4}}>Programa anual de conteúdos por disciplina</p>
         </div>
-        {selSubj&&plano.length>0&&(
+        {(isCoord||selSubj)&&plano.length>0&&(
           <Btn variant="secondary" icon="download" size="sm" onClick={()=>{
             const rows=filtered.map(p=>`<tr style="background:${p.tipo?"#fffbeb":"inherit"}"><td style="padding:6px 10px;text-align:center;font-weight:700;font-family:monospace">${p.semana}</td><td style="padding:6px 10px;text-align:center"><span style="background:#e8f0fe;color:#1251A3;border-radius:20px;padding:2px 8px;font-size:0.75rem;font-weight:700">T${p.trim}</span></td><td style="padding:6px 10px;font-weight:${p.tipo?"700":"600"};color:${p.tipo?"#B45309":"#0A1628"}">${p.tipo?"📝 ":""}${p.tema}</td><td style="padding:6px 10px;color:#5A6A7E;font-size:0.9rem">${p.licao}</td></tr>`).join("");
             const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Plano Analítico — ${selSubj.name}</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#0A1628}h2{color:#1251A3;margin-bottom:4px}p{color:#5A6A7E;margin:0 0 16px}table{width:100%;border-collapse:collapse}th{background:#0A1628;color:white;padding:8px 10px;text-align:left;font-size:0.8rem;text-transform:uppercase}td{border-bottom:1px solid #DDE4EE}tr:nth-child(even){background:#F4F8FE}</style></head><body><h2>C.I.M — Plano Analítico</h2><p>${selSubj.name} · ${selClass?.name||""} · ${selClass?.level||""}</p><table><thead><tr><th style="width:50px">Sem.</th><th style="width:60px">Trim.</th><th>Tema</th><th>Conteúdo / Lição</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
-            const blob=new Blob([html],{type:"text/html"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`plano_${selSubj.name}_${selClass?.name||"turma"}.html`.replace(/\s+/g,"_");a.click();URL.revokeObjectURL(url);
+            const blob=new Blob([html],{type:"text/html"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`plano_${selSubjName}_${selClassName}.html`.replace(/\s+/g,"_");a.click();URL.revokeObjectURL(url);
           }}>Download Plano</Btn>
         )}
       </div>
 
-      {relevantClasses.length===0 && <Card><p style={T.body}>Nenhum plano disponível para as tuas turmas ainda.</p></Card>}
+      {/* COORDINATOR MODE: Browse catalogue directly */}
+      {isCoord && <>
+        <div style={{display:"flex", gap:"0.5rem", flexWrap:"wrap", marginBottom:"1rem"}}>
+          {levels.map(lv=>(
+            <button key={lv} onClick={()=>{setSelLevel(lv);const first=ALL_PLANS.find(p=>p.level===lv);if(first)setSelPlanId(first.id);}} style={{padding:"0.5rem 1rem",borderRadius:8,cursor:"pointer",fontFamily:"inherit",fontSize:"0.875rem",border:`1.5px solid ${selLevel===lv?C.blue:C.line}`,background:selLevel===lv?C.bluePale:C.white,color:selLevel===lv?C.blue:C.slate,fontWeight:selLevel===lv?700:400}}>{lv}</button>
+          ))}
+        </div>
+        <div style={{display:"flex", gap:"0.5rem", flexWrap:"wrap", marginBottom:"1.2rem"}}>
+          {ALL_PLANS.filter(p=>p.level===selLevel).map(p=>(
+            <button key={p.id} onClick={()=>setSelPlanId(p.id)} style={{padding:"0.4rem 0.9rem",borderRadius:20,cursor:"pointer",fontFamily:"inherit",fontSize:"0.82rem",fontWeight:600,border:`1.5px solid ${selPlanId===p.id?C.blue:C.line}`,background:selPlanId===p.id?C.blue:C.white,color:selPlanId===p.id?C.white:C.slate}}>{p.name}</button>
+          ))}
+        </div>
+      </>}
 
-      {/* Class selector */}
-      {relevantClasses.length > 1 && (
+      {/* TEACHER/STUDENT MODE: Browse by class */}
+      {!isCoord && relevantClasses.length===0 && <Card><p style={T.body}>Nenhum plano disponível para as tuas turmas ainda.</p></Card>}
+
+      {!isCoord && relevantClasses.length > 1 && (
         <div style={{display:"flex", gap:"0.5rem", flexWrap:"wrap", marginBottom:"1.2rem"}}>
           {relevantClasses.map(cls => (
             <button key={cls.id} onClick={()=>{setSelClass(cls);setSelSubj(null);}} style={{
@@ -2887,7 +2914,7 @@ function PlanoAnalitico({ data, filterTeacherId, filterClass }) {
         </div>
       )}
 
-      {selClass && <>
+      {!isCoord && selClass && <>
         {/* Subject selector */}
         <div style={{display:"flex", gap:"0.5rem", flexWrap:"wrap", marginBottom:"1.2rem"}}>
           {subjects.map(s => (
@@ -2903,7 +2930,7 @@ function PlanoAnalitico({ data, filterTeacherId, filterClass }) {
         </div>
 
         {/* Trimester filter */}
-        {selSubj && (
+        {(isCoord || selSubj) && (
           <div style={{display:"flex", gap:"0.5rem", marginBottom:"1.5rem"}}>
             {[{v:0,l:"Ano Completo"},{v:1,l:"1º Trimestre"},{v:2,l:"2º Trimestre"},{v:3,l:"3º Trimestre"}].map(({v,l}) => (
               <button key={v} onClick={()=>setSelTrim(v)} style={{
@@ -2917,7 +2944,7 @@ function PlanoAnalitico({ data, filterTeacherId, filterClass }) {
         )}
 
         {/* Plan table */}
-        {selSubj && (
+        {(isCoord || selSubj) && (
           <Card style={{padding:0, overflow:"hidden"}} id="plano-table">
             <table style={{width:"100%", borderCollapse:"collapse"}}>
               <thead>
@@ -2954,6 +2981,7 @@ function PlanoAnalitico({ data, filterTeacherId, filterClass }) {
           </Card>
         )}
       </>}
+      {!isCoord && <></>}
     </div>
   );
 }
