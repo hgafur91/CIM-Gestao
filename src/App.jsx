@@ -423,7 +423,8 @@ function CoordShell({ user, data, save, onLogout }) {
         {!detail && tab==="students" && <CoordStudents data={data} onSave={save.students} onSelect={s=>setDetail({type:"student",data:s})}/>}
         {!detail && tab==="grades"   && <GradeManager  data={data} onSave={save.students}/>}
         {!detail && tab==="reports"  && <ReportList    data={data} onSave={save.reports}  onSelect={r=>setDetail({type:"report",data:r})}/>}
-        {!detail && tab==="settings" && <Settings apiKey={data.apiKey} onSave={save.apiKey}/>}
+        {!detail && tab==="relatorios"&& <RelatoriosPDF data={data} role="coord"/>}
+        {!detail && tab==="settings"  && <Settings apiKey={data.apiKey} onSave={save.apiKey}/>}
       </>}
     </Shell>
   );
@@ -1358,6 +1359,44 @@ function getPlano(sid){
 }
 const MADRASSA_LEVELS = ["1ª Parte","2ª Parte","Amma","Qur'an"];
 
+// ── Madrassa Constants ────────────────────────────────────────────────────────
+const MAD_LEVELS = ["Juz 1ª Parte", "Juz 2ª Parte", "Juz Amma", "Qur'an"];
+
+const JUZ_LICOES = Array.from({length:30}, (_,i) => `Lição ${i+1}`);
+
+const JUZZ_AMMA_SURAHS = [
+  {num:78, name:"An-Naba'"}, {num:79, name:"An-Nazi'at"}, {num:80, name:"Abasa"},
+  {num:81, name:"At-Takwir"}, {num:82, name:"Al-Infitar"}, {num:83, name:"Al-Mutaffifin"},
+  {num:84, name:"Al-Inshiqaq"}, {num:85, name:"Al-Buruj"}, {num:86, name:"At-Tariq"},
+  {num:87, name:"Al-A'la"}, {num:88, name:"Al-Ghashiya"}, {num:89, name:"Al-Fajr"},
+  {num:90, name:"Al-Balad"}, {num:91, name:"Ash-Shams"}, {num:92, name:"Al-Layl"},
+  {num:93, name:"Ad-Duha"}, {num:94, name:"Ash-Sharh"}, {num:95, name:"At-Tin"},
+  {num:96, name:"Al-Alaq"}, {num:97, name:"Al-Qadr"}, {num:98, name:"Al-Bayyina"},
+  {num:99, name:"Az-Zalzala"}, {num:100, name:"Al-Adiyat"}, {num:101, name:"Al-Qari'a"},
+  {num:102, name:"At-Takathur"}, {num:103, name:"Al-Asr"}, {num:104, name:"Al-Humaza"},
+  {num:105, name:"Al-Fil"}, {num:106, name:"Quraysh"}, {num:107, name:"Al-Ma'un"},
+  {num:108, name:"Al-Kawthar"}, {num:109, name:"Al-Kafirun"}, {num:110, name:"An-Nasr"},
+  {num:111, name:"Al-Masad"}, {num:112, name:"Al-Ikhlas"}, {num:113, name:"Al-Falaq"},
+  {num:114, name:"An-Nas"},
+];
+
+const QURAN_JUZZS = Array.from({length:30}, (_,i) => `Juz ${i+1}`);
+const QURAN_RUBU = ["1/4 (Rubu' 1)", "2/4 (Rubu' 2)", "3/4 (Rubu' 3)", "4/4 (Rubu' 4)"];
+
+function getMadLevel(level) {
+  if (level==="Juz 1ª Parte" || level==="Juz 2ª Parte") return "juz";
+  if (level==="Juz Amma") return "amma";
+  if (level==="Qur'an") return "quran";
+  return null;
+}
+
+function getNextLevel(level) {
+  const idx = MAD_LEVELS.indexOf(level);
+  return idx>=0 && idx<MAD_LEVELS.length-1 ? MAD_LEVELS[idx+1] : null;
+}
+
+
+
 function ClassManager({ data, onSaveClasses }) {
   const {classes, teachers, students, schools} = data;
   const [name, setName]           = useState("");
@@ -2143,7 +2182,7 @@ function TeacherShell({ user, data, save, onLogout }) {
     {id:"aula",     label:"Aula de Hoje",        icon:"present", badge:activeNow?1:0},
     {id:"students", label:"A Minha Turma",       icon:"student"},
     {id:"grades",   label:"Notas",               icon:"grades"},
-    {id:"submit",   label:"Submeter Relatório",  icon:"upload"},
+    {id:"relatorios",label:"Relatórios PDF",      icon:"report"},
     {id:"history",  label:"Histórico",           icon:"report"},
   ];
 
@@ -2151,10 +2190,10 @@ function TeacherShell({ user, data, save, onLogout }) {
     <Shell user={user} nav={nav} onLogout={onLogout}>
       {({tab}) => <>
         {tab==="schedule" && <TeacherSchedule user={user} data={data}/>}
-        {tab==="aula"     && <TeacherAula user={user} myClasses={myClasses} myStudents={myStudents} attendance={data.attendance||[]} onSave={save.attendance}/>}
+        {tab==="aula"     && <TeacherAula user={user} myClasses={myClasses} myStudents={myStudents} attendance={data.attendance||[]} onSave={save.attendance} onSaveStudents={save.students}/>}
         {tab==="students" && <TeacherStudents user={user} data={data} onSave={save.students} myClasses={myClasses}/>}
         {tab==="grades"   && <GradeManager data={data} onSave={save.students} filterTeacherId={user.id}/>}
-        {tab==="submit"   && <SubmitReport user={user} myStudents={myStudents} data={data} save={save}/>}
+        {tab==="relatorios"&&<RelatoriosPDF data={data} role="teacher" userId={user.id}/>}
         {tab==="history"  && <TeacherHistory myReports={myReports}/>}
       </>}
     </Shell>
@@ -2232,7 +2271,7 @@ function TeacherSchedule({ user, data }) {
 
 
 // ── Aula de Hoje ──────────────────────────────────────────────────────────────
-function TeacherAula({ user, myClasses, myStudents, attendance, onSave }) {
+function TeacherAula({ user, myClasses, myStudents, attendance, onSave, onSaveStudents }) {
   const dayNames=["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
   const todayName=dayNames[new Date().getDay()];
   const dateStr=new Date().toISOString().split("T")[0];
@@ -2241,25 +2280,109 @@ function TeacherAula({ user, myClasses, myStudents, attendance, onSave }) {
   const [tipoAula,setTipoAula]=useState("aula");
   const [semana,setSemana]=useState(null);
   const [marks,setMarks]=useState({});
+  const [madMarks,setMadMarks]=useState({}); // per-student madrassa progress
   const [saved,setSaved]=useState(false);
   const cls=selSlot?.cls;
+  const isMadClass=cls?.type==="madrassa";
   const slotKey=selSlot?`${dateStr}_${selSlot.id}`:"";
+
   useEffect(()=>{
     if(!slotKey)return;
     const existing=attendance.find(a=>a.id===slotKey);
-    if(existing){setMarks(existing.marks||{});setTipoAula(existing.tipoAula||"aula");setSemana(existing.semana||null);}
-    else{const init={};(cls?myStudents.filter(s=>s.classId===cls.id):[]).forEach(s=>{init[s.id]="present";});setMarks(init);setTipoAula("aula");setSemana(null);}
+    const studs=cls?myStudents.filter(s=>s.classId===cls.id):[];
+    if(existing){
+      setMarks(existing.marks||{});
+      setMadMarks(existing.madMarks||{});
+      setTipoAula(existing.tipoAula||"aula");
+      setSemana(existing.semana||null);
+    } else {
+      const init={};studs.forEach(s=>{init[s.id]="present";});
+      setMarks(init);setMadMarks({});setTipoAula("aula");setSemana(null);
+    }
     setSaved(false);
   },[slotKey]);
+
   function saveAula(){
-    const rec={id:slotKey,slotId:selSlot.id,classId:cls.id,teacherId:user.id,date:dateStr,tipoAula,semana,marks};
+    const rec={id:slotKey,slotId:selSlot.id,classId:cls.id,teacherId:user.id,date:dateStr,tipoAula,semana,marks,madMarks};
     onSave([...attendance.filter(a=>a.id!==slotKey),rec]);
+    // Also append madProgress to each student's history
+    if(isMadClass && onSaveStudents) {
+      const updated=myStudents.map(s=>{
+        if(!madMarks[s.id]) return s;
+        const entry={date:dateStr,...madMarks[s.id]};
+        return {...s,madProgress:[...(s.madProgress||[]),entry]};
+      });
+      onSaveStudents(updated);
+    }
     setSaved(true);setTimeout(()=>setSaved(false),2500);
   }
+
   const clsStudents=cls?myStudents.filter(s=>s.classId===cls.id):[];
   const isActive=selSlot&&slotActive(selSlot);
   const plano=selSlot?.subjectId?getPlano(selSlot.subjectId):[];
-  const TIPOS=[{id:"aula",label:"Aula Normal"},{id:"as1",label:"1ª Avaliação Semestral (A.S.)"},{id:"as2",label:"2ª Avaliação Semestral (A.S.)"},{id:"at",label:"Avaliação Trimestral (A.T.)"},{id:"ea",label:"Exame Anual (E.A.)"}];
+  const TIPOS=[{id:"aula",label:"Aula Normal"},{id:"as1",label:"1ª A.S."},{id:"as2",label:"2ª A.S."},{id:"at",label:"A.T."},{id:"ea",label:"Exame Anual"}];
+
+  function MadStudentInput({s}) {
+    const lvl = getMadLevel(s.level);
+    const mm = madMarks[s.id]||{};
+    const set = (obj) => setMadMarks({...madMarks,[s.id]:{...mm,...obj}});
+    if (lvl==="juz") return (
+      <div style={{marginTop:8}}>
+        <div style={{...T.label,marginBottom:4}}>Lição de hoje</div>
+        <select style={{...inp,fontSize:"0.82rem"}} value={mm.licao||""} onChange={e=>set({licao:e.target.value})}>
+          <option value="">Selecionar lição...</option>
+          {JUZ_LICOES.map(l=><option key={l} value={l}>{l}</option>)}
+        </select>
+      </div>
+    );
+    if (lvl==="amma") return (
+      <div style={{marginTop:8,display:"grid",gridTemplateColumns:"1fr auto auto",gap:8,alignItems:"flex-end"}}>
+        <div>
+          <div style={{...T.label,marginBottom:4}}>Surah de hoje</div>
+          <select style={{...inp,fontSize:"0.82rem"}} value={mm.surah||""} onChange={e=>set({surah:e.target.value})}>
+            <option value="">Selecionar Surah...</option>
+            {JUZZ_AMMA_SURAHS.map(s=><option key={s.num} value={s.name}>{s.num}. {s.name}</option>)}
+          </select>
+        </div>
+        <div style={{textAlign:"center"}}>
+          <div style={{...T.label,marginBottom:4}}>Hifz</div>
+          <button onClick={()=>set({hifz:!mm.hifz})} style={{width:42,height:42,borderRadius:8,border:`2px solid ${mm.hifz?C.green:C.line}`,background:mm.hifz?C.greenPale:C.white,color:mm.hifz?C.green:C.slateLight,cursor:"pointer",fontSize:"1.1rem"}}>{mm.hifz?"✓":"○"}</button>
+        </div>
+        <div style={{textAlign:"center"}}>
+          <div style={{...T.label,marginBottom:4}}>Qira'a</div>
+          <button onClick={()=>set({qiraa:!mm.qiraa})} style={{width:42,height:42,borderRadius:8,border:`2px solid ${mm.qiraa?C.blue:C.line}`,background:mm.qiraa?C.bluePale:C.white,color:mm.qiraa?C.blue:C.slateLight,cursor:"pointer",fontSize:"1.1rem"}}>{mm.qiraa?"✓":"○"}</button>
+        </div>
+      </div>
+    );
+    if (lvl==="quran") return (
+      <div style={{marginTop:8,display:"grid",gridTemplateColumns:"1fr 1fr auto auto",gap:8,alignItems:"flex-end"}}>
+        <div>
+          <div style={{...T.label,marginBottom:4}}>Juz</div>
+          <select style={{...inp,fontSize:"0.82rem"}} value={mm.juz||""} onChange={e=>set({juz:e.target.value})}>
+            <option value="">Juz...</option>
+            {QURAN_JUZZS.map(j=><option key={j} value={j}>{j}</option>)}
+          </select>
+        </div>
+        <div>
+          <div style={{...T.label,marginBottom:4}}>Rubu'</div>
+          <select style={{...inp,fontSize:"0.82rem"}} value={mm.rubu||""} onChange={e=>set({rubu:e.target.value})}>
+            <option value="">Rubu'...</option>
+            {QURAN_RUBU.map(r=><option key={r} value={r}>{r}</option>)}
+          </select>
+        </div>
+        <div style={{textAlign:"center"}}>
+          <div style={{...T.label,marginBottom:4}}>Hifz</div>
+          <button onClick={()=>set({hifz:!mm.hifz})} style={{width:42,height:42,borderRadius:8,border:`2px solid ${mm.hifz?C.green:C.line}`,background:mm.hifz?C.greenPale:C.white,color:mm.hifz?C.green:C.slateLight,cursor:"pointer",fontSize:"1.1rem"}}>{mm.hifz?"✓":"○"}</button>
+        </div>
+        <div style={{textAlign:"center"}}>
+          <div style={{...T.label,marginBottom:4}}>Qira'a</div>
+          <button onClick={()=>set({qiraa:!mm.qiraa})} style={{width:42,height:42,borderRadius:8,border:`2px solid ${mm.qiraa?C.blue:C.line}`,background:mm.qiraa?C.bluePale:C.white,color:mm.qiraa?C.blue:C.slateLight,cursor:"pointer",fontSize:"1.1rem"}}>{mm.qiraa?"✓":"○"}</button>
+        </div>
+      </div>
+    );
+    return null;
+  }
+
   return (
     <div>
       <div style={{marginBottom:"2rem"}}><h1 style={T.h1}>Aula de Hoje</h1><p style={{...T.body,marginTop:4}}>{todayName} · {new Date().toLocaleDateString("pt-PT")} · Janela: ±10 min</p></div>
@@ -2271,11 +2394,15 @@ function TeacherAula({ user, myClasses, myStudents, attendance, onSave }) {
         {selSlot&&(isActive?(
           <div>
             {saved&&<div style={{marginBottom:"1rem",padding:"0.75rem 1rem",background:"#EAF7F0",borderRadius:10,color:"#1A7A4A",fontWeight:600,display:"flex",alignItems:"center",gap:8}}><Icon name="check" size={18} color="#1A7A4A"/> Aula registada!</div>}
-            <Card style={{marginBottom:"1rem",padding:"1.2rem"}}>
+
+            {/* Tipo de sessão — CIM only */}
+            {!isMadClass&&<Card style={{marginBottom:"1rem",padding:"1.2rem"}}>
               <div style={{...T.label,marginBottom:10}}>Tipo de Sessão</div>
               <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap"}}>{TIPOS.map(t=><button key={t.id} onClick={()=>setTipoAula(t.id)} style={{padding:"0.5rem 1rem",borderRadius:8,cursor:"pointer",fontFamily:"inherit",fontSize:"0.82rem",fontWeight:600,border:`2px solid ${tipoAula===t.id?C.blue:C.line}`,background:tipoAula===t.id?C.bluePale:C.white,color:tipoAula===t.id?C.blue:C.slate}}>{t.label}</button>)}</div>
-            </Card>
-            {tipoAula==="aula"&&plano.length>0&&(
+            </Card>}
+
+            {/* Plano temático — CIM only */}
+            {!isMadClass&&tipoAula==="aula"&&plano.length>0&&(
               <Card style={{marginBottom:"1rem",padding:"1.2rem"}}>
                 <div style={{...T.label,marginBottom:10}}>Lição do Plano Temático</div>
                 <select style={{...inp}} value={semana||""} onChange={e=>setSemana(e.target.value?Number(e.target.value):null)}>
@@ -2285,26 +2412,41 @@ function TeacherAula({ user, myClasses, myStudents, attendance, onSave }) {
                 {semana&&(()=>{const l=plano.find(p=>p.semana===semana);return l?<div style={{marginTop:"0.75rem",background:C.blueFaint,borderRadius:8,padding:"0.75rem",fontSize:"0.85rem",color:C.slate}}><b style={{color:C.navy}}>{l.tema}</b><br/>{l.licao}</div>:null;})()}
               </Card>
             )}
+
+            {/* Presenças + progresso Madrassa */}
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1rem"}}>
-              <h2 style={{...T.h2,fontSize:"1.1rem"}}>Presenças — {cls?.name}</h2>
+              <h2 style={{...T.h2,fontSize:"1.1rem"}}>{isMadClass?"Progresso & Presenças":"Presenças"} — {cls?.name}</h2>
               <div style={{display:"flex",gap:8}}>
                 <button onClick={()=>{const m={};clsStudents.forEach(s=>{m[s.id]="present";});setMarks(m);}} style={{background:"#EAF7F0",color:"#1A7A4A",border:"none",borderRadius:7,padding:"0.4rem 0.9rem",cursor:"pointer",fontSize:"0.82rem",fontWeight:600,fontFamily:"inherit"}}>Todos Presentes</button>
                 <Btn icon="check" variant="success" onClick={saveAula}>Guardar</Btn>
               </div>
             </div>
-            <div style={{display:"grid",gap:"0.5rem"}}>
-              {clsStudents.map((s,i)=>{const status=marks[s.id]||"present";return(
-                <Card key={s.id} style={{padding:"0.75rem 1.2rem",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:12}}>
-                    <div style={{width:34,height:34,borderRadius:9,background:status==="present"?"#EAF7F0":"#FEF2F2",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:"0.8rem",color:status==="present"?"#1A7A4A":"#B91C1C"}}>{i+1}</div>
-                    <div><div style={{fontWeight:600,color:C.navy,fontSize:"0.9rem"}}>{s.name}</div><span style={T.mono}>{s.code}</span></div>
-                  </div>
-                  <div style={{display:"flex",gap:8}}>
-                    <button onClick={()=>setMarks({...marks,[s.id]:"present"})} style={{padding:"0.4rem 1rem",borderRadius:8,border:`2px solid ${status==="present"?"#1A7A4A":C.line}`,background:status==="present"?"#EAF7F0":C.white,color:status==="present"?"#1A7A4A":C.slate,cursor:"pointer",fontWeight:600,fontSize:"0.82rem",fontFamily:"inherit"}}>✓ Presente</button>
-                    <button onClick={()=>setMarks({...marks,[s.id]:"absent"})} style={{padding:"0.4rem 1rem",borderRadius:8,border:`2px solid ${status==="absent"?"#B91C1C":C.line}`,background:status==="absent"?"#FEF2F2":C.white,color:status==="absent"?"#B91C1C":C.slate,cursor:"pointer",fontWeight:600,fontSize:"0.82rem",fontFamily:"inherit"}}>✗ Falta</button>
-                  </div>
-                </Card>
-              );})}
+
+            <div style={{display:"grid",gap:"0.75rem"}}>
+              {clsStudents.map((s,i)=>{
+                const status=marks[s.id]||"present";
+                return(
+                  <Card key={s.id} style={{padding:"0.9rem 1.2rem"}}>
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+                      <div style={{display:"flex",alignItems:"center",gap:12}}>
+                        <div style={{width:34,height:34,borderRadius:9,background:status==="present"?"#EAF7F0":"#FEF2F2",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:"0.8rem",color:status==="present"?"#1A7A4A":"#B91C1C"}}>{i+1}</div>
+                        <div>
+                          <div style={{fontWeight:600,color:C.navy,fontSize:"0.9rem"}}>{s.name}</div>
+                          <div style={{display:"flex",gap:6,marginTop:2,alignItems:"center",flexWrap:"wrap"}}>
+                            <span style={T.mono}>{s.code}</span>
+                            {isMadClass&&s.level&&<Badge color="green">{s.level}</Badge>}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{display:"flex",gap:8}}>
+                        <button onClick={()=>setMarks({...marks,[s.id]:"present"})} style={{padding:"0.4rem 0.9rem",borderRadius:8,border:`2px solid ${status==="present"?"#1A7A4A":C.line}`,background:status==="present"?"#EAF7F0":C.white,color:status==="present"?"#1A7A4A":C.slate,cursor:"pointer",fontWeight:600,fontSize:"0.82rem",fontFamily:"inherit"}}>✓ Presente</button>
+                        <button onClick={()=>setMarks({...marks,[s.id]:"absent"})} style={{padding:"0.4rem 0.9rem",borderRadius:8,border:`2px solid ${status==="absent"?"#B91C1C":C.line}`,background:status==="absent"?"#FEF2F2":C.white,color:status==="absent"?"#B91C1C":C.slate,cursor:"pointer",fontWeight:600,fontSize:"0.82rem",fontFamily:"inherit"}}>✗ Falta</button>
+                      </div>
+                    </div>
+                    {isMadClass&&status==="present"&&<MadStudentInput s={s}/>}
+                  </Card>
+                );
+              })}
               {clsStudents.length===0&&<p style={T.body}>Sem alunos nesta turma.</p>}
             </div>
             {clsStudents.length>0&&<div style={{marginTop:"1rem",display:"flex",justifyContent:"flex-end"}}><Btn icon="check" variant="success" onClick={saveAula}>Guardar Aula</Btn></div>}
@@ -2335,9 +2477,8 @@ function TeacherStudents({ user, data, onSave, myClasses }) {
       id:`s_${Date.now()}`, name:name.trim(), code,
       classId:selClass.id, teacherId:user.id,
       createdAt:new Date().toISOString(), grades:{},
-      level: isMadrassa ? "1ª Parte" : null,
-      licaoApresentada: isMadrassa ? "" : null,
-      licaoPorApresentar: isMadrassa ? "" : null,
+      level: isMadrassa ? "Juz 1ª Parte" : null,
+      madProgress: [],
       stats:{cim_faltas:0, madrassa_presencas:0, madrassa_faltas:0, madrassa_fj:0},
     }]);
     setName("");
@@ -2405,25 +2546,12 @@ function TeacherStudents({ user, data, onSave, myClasses }) {
                 <Card key={s.id} style={{padding:"0.9rem 1.2rem"}}>
                   {isEd ? (
                     <div>
-                      <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"0.75rem", marginBottom:"0.75rem"}}>
-                        <div>
-                          <div style={{...T.label, marginBottom:4}}>Nível</div>
-                          <select style={{...inp}} value={editForm.level||"1ª Parte"}
-                            onChange={e=>setEditForm({...editForm,level:e.target.value})}>
-                            {["1ª Parte","2ª Parte","Amma","Qur'an"].map(l=><option key={l} value={l}>{l}</option>)}
-                          </select>
-                        </div>
-                        <div>
-                          <div style={{...T.label, marginBottom:4}}>Lição Apresentada</div>
-                          <input style={inp} value={editForm.licaoApresentada||""}
-                            placeholder="Ex: Surah Al-Fatiha"
-                            onChange={e=>setEditForm({...editForm,licaoApresentada:e.target.value})}/>
-                        </div>
-                        <div>
-                          <div style={{...T.label, marginBottom:4}}>Lição por Apresentar</div>
-                          <input style={inp} value={editForm.licaoPorApresentar||""}
-                            placeholder="Ex: Surah Al-Baqarah"
-                            onChange={e=>setEditForm({...editForm,licaoPorApresentar:e.target.value})}/>
+                      <div style={{marginBottom:"0.75rem"}}>
+                        <div style={{...T.label, marginBottom:5}}>Nível Madrassa</div>
+                        <div style={{display:"flex", gap:"0.5rem", flexWrap:"wrap"}}>
+                          {MAD_LEVELS.map(l=>(
+                            <button key={l} onClick={()=>setEditForm({...editForm,level:l})} style={{padding:"0.4rem 0.9rem",borderRadius:8,cursor:"pointer",fontFamily:"inherit",fontSize:"0.82rem",fontWeight:600,border:`1.5px solid ${editForm.level===l?C.green:C.line}`,background:editForm.level===l?C.greenPale:C.white,color:editForm.level===l?C.green:C.slate}}>{l}</button>
+                          ))}
                         </div>
                       </div>
                       <div style={{display:"flex", gap:8}}>
@@ -2434,33 +2562,39 @@ function TeacherStudents({ user, data, onSave, myClasses }) {
                   ) : (
                     <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:8}}>
                       <div style={{display:"flex", alignItems:"center", gap:12}}>
-                        <div style={{width:34, height:34,
-                          background:isMadrassa?C.greenPale:C.bluePale, borderRadius:9,
-                          display:"flex", alignItems:"center", justifyContent:"center",
-                          fontSize:"0.78rem", fontWeight:700, color:isMadrassa?C.green:C.blue}}>
-                          {i+1}
-                        </div>
+                        <div style={{width:34, height:34, background:isMadrassa?C.greenPale:C.bluePale, borderRadius:9, display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.78rem", fontWeight:700, color:isMadrassa?C.green:C.blue}}>{i+1}</div>
                         <div>
                           <div style={{...T.h3, fontSize:"0.9rem"}}>{s.name}</div>
                           <div style={{display:"flex", gap:8, marginTop:3, flexWrap:"wrap", alignItems:"center"}}>
                             <span style={T.mono}>{s.code}</span>
                             {isMadrassa && s.level && <Badge color="green">{s.level}</Badge>}
-                            {isMadrassa && s.licaoApresentada && <span style={T.small}>✓ {s.licaoApresentada}</span>}
-                            {isMadrassa && s.licaoPorApresentar && <span style={{...T.small, color:C.amber}}>→ {s.licaoPorApresentar}</span>}
+                            {isMadrassa && (()=>{
+                              const prog = (s.madProgress||[]);
+                              const last = prog[prog.length-1];
+                              if (!last) return null;
+                              const lt = getMadLevel(s.level);
+                              if (lt==="juz") return <span style={T.small}>Última: {last.licao}</span>;
+                              if (lt==="amma") return <span style={T.small}>Última: {last.surah}</span>;
+                              if (lt==="quran") return <span style={T.small}>Última: {last.juz} · {last.rubu}</span>;
+                              return null;
+                            })()}
                           </div>
                         </div>
                       </div>
                       <div style={{display:"flex", gap:6}}>
                         {isMadrassa && (
                           <Btn variant="secondary" size="sm" icon="edit"
-                            onClick={()=>{setEditingId(s.id);setEditForm({
-                              level:s.level||"1ª Parte",
-                              licaoApresentada:s.licaoApresentada||"",
-                              licaoPorApresentar:s.licaoPorApresentar||"",
-                            });}}>Editar</Btn>
+                            onClick={()=>{setEditingId(s.id);setEditForm({level:s.level||"Juz 1ª Parte"});}}>
+                            Nível
+                          </Btn>
                         )}
-                        <button onClick={()=>{if(window.confirm("Remover?"))onSave(students.filter(x=>x.id!==s.id));}}
-                          style={{background:"none", border:"none", cursor:"pointer", padding:6}}>
+                        {isMadrassa && getNextLevel(s.level) && (
+                          <Btn variant="success" size="sm" icon="medal"
+                            onClick={()=>{if(window.confirm(`Graduar ${s.name} para ${getNextLevel(s.level)}?`))onSave(students.map(x=>x.id===s.id?{...x,level:getNextLevel(s.level)}:x));}}>
+                            Graduar
+                          </Btn>
+                        )}
+                        <button onClick={()=>{if(window.confirm("Remover?"))onSave(students.filter(x=>x.id!==s.id));}} style={{background:"none",border:"none",cursor:"pointer",padding:6}}>
                           <Icon name="trash" size={15} color={C.slateLight}/>
                         </button>
                       </div>
@@ -3112,6 +3246,375 @@ function DesempenhoProfessores({ data }) {
             <Icon name="users" size={40} color={C.line}/>
             <p style={{marginTop:"1rem"}}>Nenhum professor encontrado</p>
           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RELATÓRIOS PDF
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function openPDF(html) {
+  const w = window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(()=>w.print(), 600);
+}
+
+const PDF_CSS = `
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',Arial,sans-serif;color:#0A1628;background:#fff;padding:0}
+  @page{size:A4;margin:18mm 14mm}
+  @media print{.no-print{display:none!important}}
+  .page{max-width:780px;margin:0 auto;padding:24px}
+  .header{background:linear-gradient(135deg,#0A1628 0%,#1251A3 100%);color:white;padding:24px 28px;border-radius:12px;margin-bottom:24px}
+  .header h1{font-size:1.5rem;font-weight:800;margin-bottom:4px}
+  .header p{font-size:0.85rem;opacity:0.7}
+  .header .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:16px}
+  .header .meta-item label{font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;opacity:0.5;display:block;margin-bottom:2px}
+  .header .meta-item span{font-size:0.9rem;font-weight:600}
+  .section{margin-bottom:20px}
+  .section-title{font-size:0.75rem;font-weight:700;color:#1251A3;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #EAF2FC}
+  table{width:100%;border-collapse:collapse;font-size:0.82rem}
+  th{background:#F4F8FE;padding:7px 10px;text-align:left;font-size:0.7rem;font-weight:700;color:#8898AA;text-transform:uppercase;letter-spacing:0.05em}
+  td{padding:7px 10px;border-bottom:1px solid #DDE4EE;vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:0.7rem;font-weight:700}
+  .badge-green{background:#EAF7F0;color:#1A7A4A}
+  .badge-blue{background:#EAF2FC;color:#1251A3}
+  .badge-amber{background:#FFFBEB;color:#B45309}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px}
+  .stat{background:#F4F8FE;border-radius:8px;padding:12px;text-align:center}
+  .stat .num{font-size:2rem;font-weight:800;color:#1251A3;line-height:1}
+  .stat .lbl{font-size:0.72rem;color:#8898AA;margin-top:4px}
+  .print-btn{position:fixed;bottom:24px;right:24px;background:#1251A3;color:white;border:none;padding:12px 24px;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(18,81,163,0.4)}
+  .prog-bar{height:8px;background:#DDE4EE;border-radius:4px;overflow:hidden;margin-top:4px}
+  .prog-fill{height:100%;background:#1A7A4A;border-radius:4px}
+`;
+
+// ── Boletim do Aluno (Madrassa) ───────────────────────────────────────────────
+function gerarBoletimAluno(student, school, teacher) {
+  const prog = student.madProgress || [];
+  const lvl = student.level || '—';
+
+  // Group by date
+  const byDate = {};
+  prog.forEach(p => {
+    if (!byDate[p.date]) byDate[p.date] = [];
+    byDate[p.date].push(p);
+  });
+
+  const rows = Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).map(([date, entries]) => {
+    return entries.map(e => {
+      const lt = getMadLevel(lvl);
+      let progText = '';
+      if (lt==='juz') progText = e.licao||'—';
+      else if (lt==='amma') {
+        progText = e.surah||'—';
+        if (e.hifz) progText += ' · Hifz ✓';
+        if (e.qiraa) progText += ' · Qira\'a ✓';
+      } else if (lt==='quran') {
+        progText = `${e.juz||'—'} · ${e.rubu||'—'}`;
+        if (e.hifz) progText += ' · Hifz ✓';
+        if (e.qiraa) progText += ' · Qira\'a ✓';
+      }
+      return `<tr><td>${date}</td><td>${progText}</td></tr>`;
+    }).join('');
+  }).join('');
+
+  const html = `<!DOCTYPE html><html lang="pt"><head><meta charset="utf-8"><title>Boletim — ${student.name}</title>
+  <style>${PDF_CSS}</style></head><body>
+  <div class="page">
+    <div class="header">
+      <h1>Boletim Individual — Madrassa</h1>
+      <p>Centro Islâmico de Moçambique · ${new Date().toLocaleDateString('pt-PT')}</p>
+      <div class="meta">
+        <div class="meta-item"><label>Aluno</label><span>${student.name}</span></div>
+        <div class="meta-item"><label>Nº CIM</label><span>${student.code}</span></div>
+        <div class="meta-item"><label>Nível Actual</label><span>${lvl}</span></div>
+        <div class="meta-item"><label>Professor</label><span>${teacher?.name||'—'}</span></div>
+        <div class="meta-item"><label>Escola</label><span>${school?.name||'—'}</span></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="stat-grid">
+        <div class="stat"><div class="num">${prog.length}</div><div class="lbl">Sessões Registadas</div></div>
+        <div class="stat"><div class="num">${Object.keys(byDate).length}</div><div class="lbl">Datas Distintas</div></div>
+        <div class="stat"><div class="num">${prog.filter(p=>p.hifz).length}</div><div class="lbl">Sessões Hifz</div></div>
+        <div class="stat"><div class="num">${prog.filter(p=>p.qiraa).length}</div><div class="lbl">Sessões Qira'a</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Histórico de Progresso</div>
+      ${prog.length===0 ? '<p style="color:#8898AA;font-size:0.85rem">Sem registos ainda.</p>' : `
+      <table><thead><tr><th>Data</th><th>Progresso Registado</th></tr></thead>
+      <tbody>${rows}</tbody></table>`}
+    </div>
+  </div>
+  <button class="print-btn no-print" onclick="window.print()">🖨️ Imprimir / PDF</button>
+  </body></html>`;
+  openPDF(html);
+}
+
+// ── Relatório Mensal do Professor ─────────────────────────────────────────────
+function gerarRelatorioMensalProfessor(teacher, classes, students, attendance, schools, mes, ano) {
+  const school = schools.find(s=>s.id===teacher.schoolId);
+  const myClasses = classes.filter(c=>c.teacherId===teacher.id);
+  const myStudents = students.filter(s=>myClasses.some(c=>c.id===s.classId));
+
+  // Filter attendance for this month
+  const prefix = `${ano}-${String(mes).padStart(2,'0')}`;
+  const myAtt = attendance.filter(a=>a.teacherId===teacher.id && (a.date||'').startsWith(prefix));
+
+  const totalAulas = myAtt.length;
+  const cimAtt = myAtt.filter(a=>{ const cls=classes.find(c=>c.id===a.classId); return cls?.type!=='madrassa'; });
+  const madAtt = myAtt.filter(a=>{ const cls=classes.find(c=>c.id===a.classId); return cls?.type==='madrassa'; });
+
+  // Attendance per class
+  const classRows = myClasses.map(cls => {
+    const clsAtt = myAtt.filter(a=>a.classId===cls.id);
+    const nStudents = students.filter(s=>s.classId===cls.id).length;
+    const presentes = clsAtt.reduce((acc,a)=>acc+Object.values(a.marks||{}).filter(v=>v==='present').length,0);
+    const faltas = clsAtt.reduce((acc,a)=>acc+Object.values(a.marks||{}).filter(v=>v==='absent').length,0);
+    return `<tr>
+      <td><b>${cls.name}</b></td>
+      <td style="text-align:center">${cls.type==='madrassa'?'Madrassa':'CIM'}</td>
+      <td style="text-align:center">${nStudents}</td>
+      <td style="text-align:center">${clsAtt.length}</td>
+      <td style="text-align:center;color:#1A7A4A">${presentes}</td>
+      <td style="text-align:center;color:#B91C1C">${faltas}</td>
+    </tr>`;
+  }).join('');
+
+  // Semanas do plano cumpridas
+  const weeksCovered = [...new Set(myAtt.filter(a=>a.semana).map(a=>a.semana))];
+
+  const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  const html = `<!DOCTYPE html><html lang="pt"><head><meta charset="utf-8"><title>Relatório — ${teacher.name} — ${MESES[mes-1]} ${ano}</title>
+  <style>${PDF_CSS}</style></head><body>
+  <div class="page">
+    <div class="header">
+      <h1>Relatório Mensal do Professor</h1>
+      <p>Centro Islâmico de Moçambique · ${MESES[mes-1]} ${ano}</p>
+      <div class="meta">
+        <div class="meta-item"><label>Professor</label><span>${teacher.name}</span></div>
+        <div class="meta-item"><label>ID</label><span>${teacher.id}</span></div>
+        <div class="meta-item"><label>Escola</label><span>${school?.name||'—'}</span></div>
+        <div class="meta-item"><label>Turmas</label><span>${myClasses.length}</span></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="stat-grid">
+        <div class="stat"><div class="num">${totalAulas}</div><div class="lbl">Total de Aulas</div></div>
+        <div class="stat"><div class="num">${cimAtt.length}</div><div class="lbl">Aulas CIM</div></div>
+        <div class="stat"><div class="num">${madAtt.length}</div><div class="lbl">Sessões Madrassa</div></div>
+        <div class="stat"><div class="num">${weeksCovered.length}</div><div class="lbl">Semanas Plano</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Actividade por Turma</div>
+      ${myClasses.length===0?'<p style="color:#8898AA">Sem turmas.</p>':`
+      <table><thead><tr><th>Turma</th><th>Tipo</th><th>Alunos</th><th>Aulas</th><th>Presenças</th><th>Faltas</th></tr></thead>
+      <tbody>${classRows}</tbody></table>`}
+    </div>
+    ${weeksCovered.length>0?`
+    <div class="section">
+      <div class="section-title">Semanas do Plano Analítico Cumpridas</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        ${weeksCovered.sort((a,b)=>a-b).map(w=>`<span class="badge badge-blue">Sem. ${w}</span>`).join('')}
+      </div>
+    </div>`:''}
+  </div>
+  <button class="print-btn no-print" onclick="window.print()">🖨️ Imprimir / PDF</button>
+  </body></html>`;
+  openPDF(html);
+}
+
+// ── Relatório Mensal da Escola ────────────────────────────────────────────────
+function gerarRelatorioEscola(school, teachers, classes, students, attendance, mes, ano) {
+  const schTeachers = teachers.filter(t=>t.schoolId===school.id);
+  const schClasses = classes.filter(c=>c.schoolId===school.id);
+  const schStudents = students.filter(s=>schClasses.some(c=>c.id===s.classId));
+  const prefix = `${ano}-${String(mes).padStart(2,'0')}`;
+  const schAtt = attendance.filter(a=>{
+    const cls=classes.find(c=>c.id===a.classId);
+    return cls?.schoolId===school.id && (a.date||'').startsWith(prefix);
+  });
+
+  const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  const teacherRows = schTeachers.map(t=>{
+    const tAtt=schAtt.filter(a=>a.teacherId===t.id);
+    const tClasses=schClasses.filter(c=>c.teacherId===t.id);
+    return `<tr>
+      <td><b>${t.name}</b><br><span style="font-size:0.75rem;color:#8898AA">${t.id}</span></td>
+      <td style="text-align:center">${tClasses.length}</td>
+      <td style="text-align:center">${tAtt.length}</td>
+      <td style="text-align:center">${[...new Set(tAtt.filter(a=>a.semana).map(a=>a.semana))].length}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html><html lang="pt"><head><meta charset="utf-8"><title>Relatório — ${school.name} — ${MESES[mes-1]} ${ano}</title>
+  <style>${PDF_CSS}</style></head><body>
+  <div class="page">
+    <div class="header">
+      <h1>Relatório Mensal da Escola</h1>
+      <p>Centro Islâmico de Moçambique · ${MESES[mes-1]} ${ano}</p>
+      <div class="meta">
+        <div class="meta-item"><label>Escola</label><span>${school.name}</span></div>
+        <div class="meta-item"><label>Código</label><span>${school.code}</span></div>
+        <div class="meta-item"><label>Localização</label><span>${school.location||'—'}</span></div>
+        <div class="meta-item"><label>Período</label><span>${MESES[mes-1]} ${ano}</span></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="stat-grid">
+        <div class="stat"><div class="num">${schTeachers.length}</div><div class="lbl">Professores</div></div>
+        <div class="stat"><div class="num">${schClasses.length}</div><div class="lbl">Turmas</div></div>
+        <div class="stat"><div class="num">${schStudents.length}</div><div class="lbl">Alunos</div></div>
+        <div class="stat"><div class="num">${schAtt.length}</div><div class="lbl">Aulas Registadas</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Actividade dos Professores — ${MESES[mes-1]}</div>
+      ${schTeachers.length===0?'<p style="color:#8898AA">Sem professores nesta escola.</p>':`
+      <table><thead><tr><th>Professor</th><th>Turmas</th><th>Aulas</th><th>Sem. Plano</th></tr></thead>
+      <tbody>${teacherRows}</tbody></table>`}
+    </div>
+  </div>
+  <button class="print-btn no-print" onclick="window.print()">🖨️ Imprimir / PDF</button>
+  </body></html>`;
+  openPDF(html);
+}
+
+// ── Painel de Relatórios ──────────────────────────────────────────────────────
+function RelatoriosPDF({ data, role, userId }) {
+  const { teachers, classes, students, attendance, schools } = data;
+  const now = new Date();
+  const [mes, setMes]   = useState(now.getMonth()+1);
+  const [ano, setAno]   = useState(now.getFullYear());
+  const [selSchool, setSelSchool] = useState(schools[0]?.id||"");
+
+  const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const anos = [2024,2025,2026,2027];
+
+  // For teacher role: their students
+  const myClasses = role==='teacher' ? classes.filter(c=>c.teacherId===userId) : classes;
+  const madStudents = students.filter(s=>myClasses.some(c=>c.id===s.classId&&c.type==='madrassa'));
+  const teacher = teachers.find(t=>t.id===userId);
+  const school = schools.find(s=>s.id===selSchool);
+
+  return (
+    <div>
+      <div style={{marginBottom:"2rem"}}>
+        <h1 style={T.h1}>Relatórios PDF</h1>
+        <p style={{...T.body, marginTop:4}}>Gera relatórios para impressão ou conversão em PDF</p>
+      </div>
+
+      {/* Period selector */}
+      <Card style={{marginBottom:"1.5rem", padding:"1.2rem"}}>
+        <div style={{...T.label, marginBottom:8}}>Período</div>
+        <div style={{display:"flex", gap:"0.75rem", flexWrap:"wrap", alignItems:"center"}}>
+          <select style={{...inp, width:"auto"}} value={mes} onChange={e=>setMes(Number(e.target.value))}>
+            {MESES.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+          </select>
+          <select style={{...inp, width:"auto"}} value={ano} onChange={e=>setAno(Number(e.target.value))}>
+            {anos.map(a=><option key={a} value={a}>{a}</option>)}
+          </select>
+        </div>
+      </Card>
+
+      <div style={{display:"grid", gap:"1rem"}}>
+        {/* Boletins individuais da Madrassa */}
+        {madStudents.length>0&&(
+          <Card>
+            <h2 style={{...T.h2, fontSize:"1rem", marginBottom:"0.3rem"}}>📋 Boletim Individual — Madrassa</h2>
+            <p style={{...T.small, marginBottom:"1rem"}}>Historial completo de progresso de cada aluno da Madrassa</p>
+            <div style={{display:"grid", gap:"0.5rem"}}>
+              {madStudents.map(s=>{
+                const cls=classes.find(c=>c.id===s.classId);
+                const tch=teachers.find(t=>t.id===cls?.teacherId);
+                const sc=schools.find(x=>x.id===cls?.schoolId);
+                return(
+                  <div key={s.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0.6rem 0.9rem",background:C.sand,borderRadius:8,border:`1px solid ${C.line}`}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <span style={{fontWeight:600,color:C.navy}}>{s.name}</span>
+                      <span style={T.mono}>{s.code}</span>
+                      {s.level&&<Badge color="green">{s.level}</Badge>}
+                      <span style={T.small}>· {(s.madProgress||[]).length} registos</span>
+                    </div>
+                    <Btn variant="secondary" size="sm" icon="report"
+                      onClick={()=>gerarBoletimAluno(s, sc, tch)}>
+                      Gerar PDF
+                    </Btn>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        )}
+
+        {/* Relatório do Professor */}
+        {role==='teacher'&&teacher&&(
+          <Card>
+            <h2 style={{...T.h2, fontSize:"1rem", marginBottom:"0.3rem"}}>📊 Relatório Mensal — Professor</h2>
+            <p style={{...T.small, marginBottom:"1rem"}}>Actividade do mês: aulas, presenças e plano analítico</p>
+            <Btn variant="primary" icon="report"
+              onClick={()=>gerarRelatorioMensalProfessor(teacher, classes, students, attendance, schools, mes, ano)}>
+              Gerar Relatório de {MESES[mes-1]} {ano}
+            </Btn>
+          </Card>
+        )}
+
+        {/* Relatórios por professor — coord */}
+        {role==='coord'&&(
+          <Card>
+            <h2 style={{...T.h2, fontSize:"1rem", marginBottom:"0.3rem"}}>📊 Relatório Mensal por Professor</h2>
+            <p style={{...T.small, marginBottom:"1rem"}}>Actividade de cada professor no mês seleccionado</p>
+            <div style={{display:"grid", gap:"0.5rem"}}>
+              {teachers.map(t=>(
+                <div key={t.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0.6rem 0.9rem",background:C.sand,borderRadius:8,border:`1px solid ${C.line}`}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <span style={{fontWeight:600,color:C.navy}}>{t.name}</span>
+                    <span style={T.mono}>{t.id}</span>
+                    {schools.find(s=>s.id===t.schoolId)&&<Badge color="teal">{schools.find(s=>s.id===t.schoolId).name}</Badge>}
+                  </div>
+                  <Btn variant="secondary" size="sm" icon="report"
+                    onClick={()=>gerarRelatorioMensalProfessor(t, classes, students, attendance, schools, mes, ano)}>
+                    PDF
+                  </Btn>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {/* Relatório da Escola — coord */}
+        {role==='coord'&&schools.length>0&&(
+          <Card>
+            <h2 style={{...T.h2, fontSize:"1rem", marginBottom:"0.3rem"}}>🏫 Relatório Mensal da Escola</h2>
+            <p style={{...T.small, marginBottom:"1rem"}}>Visão geral de cada escola no mês seleccionado</p>
+            <div style={{display:"grid", gap:"0.5rem"}}>
+              {schools.map(sc=>(
+                <div key={sc.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0.6rem 0.9rem",background:C.sand,borderRadius:8,border:`1px solid ${C.line}`}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <span style={{fontWeight:600,color:C.navy}}>{sc.name}</span>
+                    <span style={T.mono}>{sc.code}</span>
+                    {sc.location&&<span style={T.small}>· {sc.location}</span>}
+                  </div>
+                  <Btn variant="teal" size="sm" icon="report"
+                    onClick={()=>gerarRelatorioEscola(sc, teachers, classes, students, attendance, mes, ano)}>
+                    PDF
+                  </Btn>
+                </div>
+              ))}
+            </div>
+          </Card>
         )}
       </div>
     </div>
